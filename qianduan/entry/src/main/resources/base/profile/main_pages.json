@@ -1,0 +1,19 @@
+{
+  "src": [
+    "pages/SplashPage",
+    "pages/LoginPage",
+    "pages/MainPage",
+    "pages/TimetablePage",
+    "pages/CoursesPage",
+    "pages/GradesPage",
+    "pages/LeavePage",
+    "pages/CampusCardPage",
+    "pages/LibraryPage",
+    "pages/NoticesPage",
+    "pages/AdminPage",
+    "pages/AttendancePage",
+    "pages/AssignmentsPage",
+    "pages/ExamsPage",
+    "pages/ApprovalsPage"
+  ]
+}

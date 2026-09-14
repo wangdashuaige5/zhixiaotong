@@ -1,0 +1,20 @@
+# 演示单实例模式：使用真实MySQL，本地文件与进程内会话，支付/图书为本地模拟。
+campus:
+  jwt-secret: ${JWT_SECRET:demo-only-change-this-jwt-key-32-bytes-minimum}
+  encryption-key: ${ENCRYPTION_KEY:demo-only-encryption-key-change-before-production}
+  payment-secret: ${PAYMENT_SECRET:demo-only-payment-callback-secret}
+  integration-mode: mock
+  session-mode: memory
+  message-mode: local
+  storage-mode: local
+  scan-mode: demo
+  demo-seed: true
+spring:
+  datasource:
+    password: ${DB_PASSWORD:campus_demo_2026}
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+management:
+  health:
+    redis:
+      enabled: false

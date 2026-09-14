@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "智校通主模块"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "智校通智慧校园服务平台"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "智校通"
+    }
+  ]
+}

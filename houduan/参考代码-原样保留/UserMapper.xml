@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--
+  @Description: 用户Mapper配置文件
+  @author: 高军
+  @date: 2026-9-7
+-->
+<mapper namespace="com.neusoft.make.mapper.UserMapper">
+
+    <!-- 单条件获取符合条件的用户数量 -->
+    <select id="getUserCount" resultType="int">
+        SELECT COUNT(*) FROM `user`
+        <where>
+            <if test="keywords!=null">
+                AND (id LIKE concat('%',#{keywords},'%')
+            </if>
+            <if test="keywords!=null">
+                OR account LIKE concat('%',#{keywords},'%')
+            </if>
+            <if test="keywords!=null">
+                OR real_name LIKE concat('%',#{keywords},'%')
+            </if>
+            <if test="keywords!=null">
+                OR role_code LIKE concat('%',#{keywords},'%') )
+            </if>
+        </where>
+    </select>
+
+    <!--单条件分页查询用户信息-->
+    <select id="listUser" resultType="User">
+        SELECT * FROM `user`
+        <where>
+            <if test="keywords!=null">
+                AND (id LIKE concat('%',#{keywords},'%')
+            </if>
+            <if test="keywords!=null">
+                OR account LIKE concat('%',#{keywords},'%')
+            </if>
+            <if test="keywords!=null">
+                OR real_name LIKE concat('%',#{keywords},'%')
+            </if>
+            <if test="keywords!=null">
+                OR role_code LIKE concat('%',#{keywords},'%') )
+            </if>
+        </where>
+        ORDER BY id limit #{pageNum},#{maxPageNum};
+    </select>
+
+    <!-- 用户添加 -->
+    <insert id="addUser" parameterType="java.util.Map">
+        INSERT INTO `user`
+        <set>
+            <if test="account !=null and account !=''">
+                account=#{account},
+            </if>
+            <if test="password !=null and password !=''">
+                password=#{password},
+            </if>
+            <if test="real_name !=null and real_name !=''">
+                real_name=#{real_name},
+            </if>
+            <if test="role_code !=null and role_code !=''">
+                role_code=#{role_code},
+            </if>
+            <if test="dept_id !=null">
+                dept_id=#{dept_id},
+            </if>
+            <if test="phone !=null and phone !=''">
+                phone=#{phone},
+            </if>
+            <if test="email !=null and email !=''">
+                email=#{email},
+            </if>
+            <if test="harmony_device_id !=null and harmony_device_id !=''">
+                harmony_device_id=#{harmony_device_id},
+            </if>
+            <if test="face_feature !=null and face_feature !=''">
+                face_feature=#{face_feature},
+            </if>
+            <if test="is_locked !=null">
+                is_locked=#{is_locked},
+            </if>
+        </set>
+    </insert>
+
+    <!-- 用户更新 -->
+    <update id="updateUserById" parameterType="java.util.Map">
+        UPDATE `user`
+        <set>
+            <if test="account !=null and account !=''">
+                account=#{account},
+            </if>
+            <if test="password !=null and password !=''">
+                password=#{password},
+            </if>
+            <if test="real_name !=null and real_name !=''">
+                real_name=#{real_name},
+            </if>
+            <if test="role_code !=null and role_code !=''">
+                role_code=#{role_code},
+            </if>
+            <if test="dept_id !=null">
+                dept_id=#{dept_id},
+            </if>
+            <if test="phone !=null and phone !=''">
+                phone=#{phone},
+            </if>
+            <if test="email !=null and email !=''">
+                email=#{email},
+            </if>
+            <if test="harmony_device_id !=null and harmony_device_id !=''">
+                harmony_device_id=#{harmony_device_id},
+            </if>
+            <if test="face_feature !=null and face_feature !=''">
+                face_feature=#{face_feature},
+            </if>
+            <if test="is_locked !=null">
+                is_locked=#{is_locked},
+            </if>
+        </set>
+        WHERE id=#{id}
+    </update>
+
+    <!-- 用户删除 支持批量删除 -->
+    <delete id="deleteUserByIds">
+        DELETE FROM `user` WHERE id=#{user_id}
+    </delete>
+
+    <!-- 以下为多表操作 -->
+    <!-- 单条件获取符合条件的用户数量(多表) -->
+    <select id="getUserCount2" resultType="int">
+        SELECT COUNT(*) FROM `user` u LEFT JOIN `patient` p ON u.id=p.user_id
+        <if test="keywords!=null">
+            AND (u.id LIKE concat('%',#{keywords},'%')
+        </if>
+        <if test="keywords!=null">
+            OR u.account LIKE concat('%',#{keywords},'%')
+        </if>
+        <if test="keywords!=null">
+            OR u.real_name LIKE concat('%',#{keywords},'%')
+        </if>
+        <if test="keywords!=null">
+            OR p.name LIKE concat('%',#{keywords},'%') )
+        </if>
+    </select>
+
+    <!--单条件分页查询用户信息(多表)-->
+    <select id="listUser2" resultType="java.util.Map">
+        SELECT u.*, p.name AS patient_name, p.gender, p.birth_date
+        FROM `user` u LEFT JOIN `patient` p ON u.id=p.user_id
+        <if test="keywords!=null">
+            AND (u.id LIKE concat('%',#{keywords},'%')
+        </if>
+        <if test="keywords!=null">
+            OR u.account LIKE concat('%',#{keywords},'%')
+        </if>
+        <if test="keywords!=null">
+            OR u.real_name LIKE concat('%',#{keywords},'%')
+        </if>
+        <if test="keywords!=null">
+            OR p.name LIKE concat('%',#{keywords},'%') )
+        </if>
+        ORDER BY u.id limit #{pageNum},#{maxPageNum};
+    </select>
+</mapper>

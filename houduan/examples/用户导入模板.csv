@@ -1,0 +1,2 @@
+user_name,real_name,user_no,password,org_id,class_id,gender,email
+new_student,示例学生,DEMO_NEW_001,ChangeMe@123456,4,1,0,student@example.invalid

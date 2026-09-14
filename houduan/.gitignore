@@ -1,0 +1,8 @@
+target/
+data/
+.env
+*.log
+.DS_Store
+.idea/
+deploy/certs/
+deploy/bootstrap-admin.sql

@@ -1,0 +1,80 @@
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+spring:
+  application:
+    name: zhixiaotong-backend
+  profiles:
+    default: demo
+  datasource:
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/zhixiaotong?useUnicode=true&characterEncoding=utf8&connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true}
+    username: ${DB_USER:zhixiaotong}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 5000
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    time-zone: Asia/Shanghai
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+  rabbitmq:
+    host: ${RABBITMQ_HOST:127.0.0.1}
+    username: ${RABBITMQ_USER:campus}
+    password: ${RABBITMQ_PASSWORD:}
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        default-requeue-rejected: false
+  flyway:
+    enabled: true
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    call-setters-on-nulls: true
+    return-instance-for-empty-row: true
+    jdbc-type-for-null: 'NULL'
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+campus:
+  jwt-secret: ${JWT_SECRET}
+  encryption-key: ${ENCRYPTION_KEY}
+  payment-secret: ${PAYMENT_SECRET:}
+  access-minutes: 15
+  refresh-days: 7
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173}
+  integration-mode: disabled
+  session-mode: redis
+  message-mode: rabbit
+  storage-mode: minio
+  storage-path: ${STORAGE_PATH:./data/files}
+  minio-endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+  minio-access-key: ${MINIO_ACCESS_KEY:}
+  minio-secret-key: ${MINIO_SECRET_KEY:}
+  minio-bucket: campus-private
+  scan-mode: clamav
+  clamav-host: ${CLAMAV_HOST:127.0.0.1}
+  clamav-port: ${CLAMAV_PORT:3310}
+  jobs-enabled: true
+  auto-close-leave: false
+  demo-seed: false

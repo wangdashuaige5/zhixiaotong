@@ -1,0 +1,7074 @@
+[
+  {
+    "name": "user",
+    "label": "用户表",
+    "purpose": "保存师生账号、组织归属与认证信息",
+    "fields": [
+      {
+        "label": "用户ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "账号",
+        "code": "user_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "密码哈希",
+        "code": "password_hash",
+        "type": "VARCHAR(255)",
+        "nullable": false,
+        "default": "",
+        "note": "强哈希；不保存明文",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "姓名",
+        "code": "real_name",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "学工号",
+        "code": "user_no",
+        "type": "VARCHAR(32)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "学生学号或教工号",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "性别",
+        "code": "gender",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0未知；1男；2女",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "手机号",
+        "code": "phone",
+        "type": "VARCHAR(128)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "敏感信息加密保存",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "邮箱",
+        "code": "email",
+        "type": "VARCHAR(128)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "组织ID",
+        "code": "org_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "org_unit(id)；查询索引",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "班级ID",
+        "code": "class_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "school_class(id)；学生必填；查询索引",
+        "key": "外键",
+        "ref": "school_class"
+      },
+      {
+        "label": "头像ID",
+        "code": "avatar_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "file_upload(id)",
+        "key": "外键",
+        "ref": "file_upload"
+      },
+      {
+        "label": "账号状态",
+        "code": "user_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1正常；2注销",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "失败次数",
+        "code": "failed_count",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "锁定截止",
+        "code": "lock_until",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "令牌版本",
+        "code": "token_version",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "修改密码或撤销时递增",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "user_name"
+      ],
+      [
+        "user_no"
+      ]
+    ],
+    "indexes": [
+      [
+        "org_id"
+      ],
+      [
+        "class_id"
+      ]
+    ]
+  },
+  {
+    "name": "org_unit",
+    "label": "组织机构表",
+    "purpose": "维护学校、院系、专业和年级组织树",
+    "fields": [
+      {
+        "label": "组织ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "父组织ID",
+        "code": "parent_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "org_unit(id)；根节点为空；禁止环路；查询索引",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "组织编码",
+        "code": "org_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "组织名称",
+        "code": "org_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "组织类型",
+        "code": "org_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1学校；2院系；3专业；4年级",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "排序值",
+        "code": "sort_order",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "启用状态",
+        "code": "is_enabled",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1启用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "org_code"
+      ]
+    ],
+    "indexes": [
+      [
+        "parent_id"
+      ]
+    ]
+  },
+  {
+    "name": "school_class",
+    "label": "班级表",
+    "purpose": "维护行政班与年级归属",
+    "fields": [
+      {
+        "label": "班级ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "班级编码",
+        "code": "class_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "班级名称",
+        "code": "class_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "年级ID",
+        "code": "grade_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "org_unit(id)；仅关联年级节点；查询索引",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "入学年份",
+        "code": "entry_year",
+        "type": "SMALLINT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "学制年数",
+        "code": "school_years",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "3",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "班级状态",
+        "code": "class_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1在读；2毕业",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "class_code"
+      ]
+    ],
+    "indexes": [
+      [
+        "grade_id"
+      ]
+    ]
+  },
+  {
+    "name": "role",
+    "label": "角色表",
+    "purpose": "定义学生、教师、辅导员及管理角色",
+    "fields": [
+      {
+        "label": "角色ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "角色编码",
+        "code": "role_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "角色名称",
+        "code": "role_name",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "数据范围",
+        "code": "scope_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1本人；2授课；3所辖；4自定义；5全校",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "角色说明",
+        "code": "description",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "启用状态",
+        "code": "is_enabled",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1启用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "role_code"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "permission",
+    "label": "权限表",
+    "purpose": "统一维护菜单、按钮与接口权限",
+    "fields": [
+      {
+        "label": "权限ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "父权限ID",
+        "code": "parent_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "permission(id)",
+        "key": "外键",
+        "ref": "permission"
+      },
+      {
+        "label": "权限编码",
+        "code": "permission_code",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "权限名称",
+        "code": "permission_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "权限类型",
+        "code": "permission_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1菜单；2按钮；3接口",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "资源路径",
+        "code": "resource_path",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "请求方法",
+        "code": "http_method",
+        "type": "VARCHAR(16)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "启用状态",
+        "code": "is_enabled",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1启用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "permission_code"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "user_role",
+    "label": "用户角色关联表",
+    "purpose": "支持一名用户拥有多个业务角色",
+    "fields": [
+      {
+        "label": "关联ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "用户ID",
+        "code": "user_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "角色ID",
+        "code": "role_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "role(id)；与用户ID联合唯一",
+        "key": "外键",
+        "ref": "role"
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "user_id",
+        "role_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "role_permission",
+    "label": "角色权限关联表",
+    "purpose": "将可操作权限授予角色",
+    "fields": [
+      {
+        "label": "关联ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "角色ID",
+        "code": "role_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "role(id)",
+        "key": "外键",
+        "ref": "role"
+      },
+      {
+        "label": "权限ID",
+        "code": "permission_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "permission(id)；与角色ID联合唯一",
+        "key": "外键",
+        "ref": "permission"
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "role_id",
+        "permission_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "user_scope",
+    "label": "用户数据范围表",
+    "purpose": "限定角色授权下的组织或班级范围",
+    "fields": [
+      {
+        "label": "范围ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "授权ID",
+        "code": "user_role_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user_role(id)",
+        "key": "外键",
+        "ref": "user_role"
+      },
+      {
+        "label": "组织ID",
+        "code": "org_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "org_unit(id)；与授权ID联合唯一",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "班级ID",
+        "code": "class_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "school_class(id)；与组织ID恰一非空；与授权ID联合唯一",
+        "key": "外键",
+        "ref": "school_class"
+      },
+      {
+        "label": "包含下级",
+        "code": "include_children",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0否；1是；仅组织范围有效",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "user_role_id",
+        "org_id"
+      ],
+      [
+        "user_role_id",
+        "class_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "counselor_class",
+    "label": "辅导员班级关联表",
+    "purpose": "记录辅导员所辖班级及授权有效期",
+    "fields": [
+      {
+        "label": "关联ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "辅导员ID",
+        "code": "counselor_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "班级ID",
+        "code": "class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "school_class(id)",
+        "key": "外键",
+        "ref": "school_class"
+      },
+      {
+        "label": "生效时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "与辅导员ID、班级ID联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "失效时间",
+        "code": "end_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "须晚于生效时间",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "counselor_id",
+        "class_id",
+        "start_time"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "semester",
+    "label": "学期表",
+    "purpose": "设置学期日期、教学周和锁定状态",
+    "fields": [
+      {
+        "label": "学期ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "学期编码",
+        "code": "semester_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "学期名称",
+        "code": "semester_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "开始日期",
+        "code": "start_date",
+        "type": "DATE",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束日期",
+        "code": "end_date",
+        "type": "DATE",
+        "nullable": false,
+        "default": "",
+        "note": "不早于开始日期",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "教学周数",
+        "code": "week_count",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "正整数",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "当前学期",
+        "code": "is_current",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0否；1是；仅一条为1",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "锁定状态",
+        "code": "is_locked",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0未锁；1锁定",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "semester_code"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "course",
+    "label": "课程表",
+    "purpose": "保存课程目录、学分和课程大纲",
+    "fields": [
+      {
+        "label": "课程ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "课程编码",
+        "code": "course_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "课程名称",
+        "code": "course_name",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "开课组织ID",
+        "code": "org_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "org_unit(id)；组合查询索引",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "课程类别",
+        "code": "course_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "关联课程类别字典",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "学分",
+        "code": "credit",
+        "type": "DECIMAL(4,1)",
+        "nullable": false,
+        "default": "",
+        "note": "大于等于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "总学时",
+        "code": "total_hours",
+        "type": "INT",
+        "nullable": false,
+        "default": "",
+        "note": "正整数",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "课程大纲",
+        "code": "syllabus",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "启用状态",
+        "code": "is_enabled",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1启用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "course_code"
+      ]
+    ],
+    "indexes": [
+      [
+        "org_id",
+        "course_type"
+      ]
+    ]
+  },
+  {
+    "name": "course_prereq",
+    "label": "课程先修条件表",
+    "purpose": "定义选课前必须通过的先修课程",
+    "fields": [
+      {
+        "label": "条件ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "课程ID",
+        "code": "course_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "course(id)",
+        "key": "外键",
+        "ref": "course"
+      },
+      {
+        "label": "先修课程ID",
+        "code": "prereq_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "course(id)；禁止自指及循环依赖；与课程ID联合唯一",
+        "key": "外键",
+        "ref": "course"
+      },
+      {
+        "label": "最低成绩",
+        "code": "min_score",
+        "type": "DECIMAL(5,2)",
+        "nullable": false,
+        "default": "60",
+        "note": "取已发布成绩；范围0至100",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "course_id",
+        "prereq_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "classroom",
+    "label": "教室表",
+    "purpose": "保存排课教室、地点和容纳人数",
+    "fields": [
+      {
+        "label": "教室ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "教室编码",
+        "code": "room_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "教室名称",
+        "code": "room_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "所在校区",
+        "code": "campus_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "教学楼",
+        "code": "building_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "容纳人数",
+        "code": "capacity",
+        "type": "INT",
+        "nullable": false,
+        "default": "",
+        "note": "大于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "启用状态",
+        "code": "is_enabled",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1启用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "room_code"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "teaching_class",
+    "label": "教学班表",
+    "purpose": "设置开课教师、容量与成绩计算规则",
+    "fields": [
+      {
+        "label": "教学班ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "教学班编码",
+        "code": "class_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "课程ID",
+        "code": "course_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "course(id)",
+        "key": "外键",
+        "ref": "course"
+      },
+      {
+        "label": "学期ID",
+        "code": "semester_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "semester(id)；组合查询索引",
+        "key": "外键",
+        "ref": "semester"
+      },
+      {
+        "label": "教师ID",
+        "code": "teacher_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "教学班名称",
+        "code": "class_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "容量",
+        "code": "capacity",
+        "type": "INT",
+        "nullable": false,
+        "default": "",
+        "note": "大于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "已选人数",
+        "code": "enrolled_count",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "仅成功选课计数；原子更新",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "平时权重",
+        "code": "usual_weight",
+        "type": "DECIMAL(5,4)",
+        "nullable": false,
+        "default": "0.4000",
+        "note": "0至1",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "期末权重",
+        "code": "final_weight",
+        "type": "DECIMAL(5,4)",
+        "nullable": false,
+        "default": "0.6000",
+        "note": "两项权重之和为1",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "版本号",
+        "code": "version",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "容量更新并发控制",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "教学班状态",
+        "code": "class_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0未开；1开放；2结课",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "class_code"
+      ]
+    ],
+    "indexes": [
+      [
+        "semester_id",
+        "teacher_id"
+      ]
+    ]
+  },
+  {
+    "name": "timetable",
+    "label": "课表信息表",
+    "purpose": "记录周次、节次、星期与上课教室",
+    "fields": [
+      {
+        "label": "课表ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "teaching_class(id)；查询索引",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "教室ID",
+        "code": "classroom_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "classroom(id)；组合查询索引",
+        "key": "外键",
+        "ref": "classroom"
+      },
+      {
+        "label": "开始周",
+        "code": "start_week",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "从1开始",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束周",
+        "code": "end_week",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "周次模式",
+        "code": "week_mode",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1每周；2单周；3双周",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "星期",
+        "code": "week_day",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "1至7对应周一至周日",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "起始节次",
+        "code": "start_period",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束节次",
+        "code": "end_period",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "上课时间",
+        "code": "start_time",
+        "type": "TIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "下课时间",
+        "code": "end_time",
+        "type": "TIME",
+        "nullable": false,
+        "default": "",
+        "note": "需校验学生、教师及教室冲突",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "teaching_class_id"
+      ],
+      [
+        "classroom_id",
+        "week_day"
+      ]
+    ]
+  },
+  {
+    "name": "selection_batch",
+    "label": "选课批次表",
+    "purpose": "配置预选、正选和补退选开放阶段",
+    "fields": [
+      {
+        "label": "批次ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "批次编码",
+        "code": "batch_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "批次名称",
+        "code": "batch_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "学期ID",
+        "code": "semester_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "semester(id)；查询索引",
+        "key": "外键",
+        "ref": "semester"
+      },
+      {
+        "label": "批次阶段",
+        "code": "batch_stage",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1预选；2正选；3补退选",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "开放时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束时间",
+        "code": "end_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "退选截止",
+        "code": "drop_deadline",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "限选门数",
+        "code": "max_courses",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "0表示不限制",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "限选学分",
+        "code": "max_credits",
+        "type": "DECIMAL(5,1)",
+        "nullable": false,
+        "default": "0",
+        "note": "0表示不限制",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "选课公告",
+        "code": "announcement",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "批次状态",
+        "code": "batch_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0未开；1开放；2结束；3锁定",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "batch_code"
+      ]
+    ],
+    "indexes": [
+      [
+        "semester_id"
+      ]
+    ]
+  },
+  {
+    "name": "batch_course",
+    "label": "批次课程关联表",
+    "purpose": "指定批次可选教学班及超选处理方式",
+    "fields": [
+      {
+        "label": "关联ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "批次ID",
+        "code": "batch_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "selection_batch(id)",
+        "key": "外键",
+        "ref": "selection_batch"
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "teaching_class(id)；与批次ID联合唯一",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "录取方式",
+        "code": "admission_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1先到先得；2抽签；3优先级",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "优先级规则",
+        "code": "priority_rule",
+        "type": "JSON",
+        "nullable": true,
+        "default": "NULL",
+        "note": "方式3必填；保存规则及版本",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "处理状态",
+        "code": "process_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0未处理；1处理中；2完成",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "处理时间",
+        "code": "process_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "batch_id",
+        "teaching_class_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "selection_scope",
+    "label": "选课开放范围表",
+    "purpose": "按组织或班级限定可选人群",
+    "fields": [
+      {
+        "label": "范围ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "批次课程ID",
+        "code": "batch_course_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "batch_course(id)",
+        "key": "外键",
+        "ref": "batch_course"
+      },
+      {
+        "label": "组织ID",
+        "code": "org_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "org_unit(id)；与批次课程ID联合唯一",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "班级ID",
+        "code": "class_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "school_class(id)；与组织ID恰一非空；与批次课程ID联合唯一",
+        "key": "外键",
+        "ref": "school_class"
+      },
+      {
+        "label": "包含下级",
+        "code": "include_children",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0否；1是；无范围记录不开放",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "batch_course_id",
+        "org_id"
+      ],
+      [
+        "batch_course_id",
+        "class_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "enrollment",
+    "label": "选课记录表",
+    "purpose": "保存申请、录取、退选及幂等状态",
+    "fields": [
+      {
+        "label": "选课ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；锁定学生行校验同学期重复课程及时间冲突",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "teaching_class(id)；与学生ID联合唯一；组合查询索引",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "批次课程ID",
+        "code": "batch_course_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "batch_course(id)；必修导入可空；教学班须一致",
+        "key": "外键",
+        "ref": "batch_course"
+      },
+      {
+        "label": "幂等键",
+        "code": "request_key",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "选课状态",
+        "code": "enroll_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待筛选；1成功；2未录取；3已退",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "筛选顺序",
+        "code": "selection_rank",
+        "type": "INT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "保存抽签或优先级排序",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "选课时间",
+        "code": "enroll_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "退选时间",
+        "code": "drop_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "处理说明",
+        "code": "result_note",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "仅成功占容量；退选原子释放",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "版本号",
+        "code": "version",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "重选更新原记录；历史写审计",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "student_id",
+        "teaching_class_id"
+      ],
+      [
+        "request_key"
+      ]
+    ],
+    "indexes": [
+      [
+        "teaching_class_id",
+        "enroll_status"
+      ]
+    ]
+  },
+  {
+    "name": "course_resource",
+    "label": "课程资源表",
+    "purpose": "维护教学班课件、资料及可见范围",
+    "fields": [
+      {
+        "label": "资源ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "teaching_class(id)；查询索引",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "资源标题",
+        "code": "resource_title",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "文件ID",
+        "code": "file_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "file_upload(id)",
+        "key": "外键",
+        "ref": "file_upload"
+      },
+      {
+        "label": "上传人ID",
+        "code": "uploader_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "可见范围",
+        "code": "visible_scope",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1本班学生及教师；2仅教师",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "排序值",
+        "code": "sort_order",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "发布状态",
+        "code": "publish_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1已发布",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "teaching_class_id"
+      ]
+    ]
+  },
+  {
+    "name": "assignment",
+    "label": "作业表",
+    "purpose": "发布课程作业、截止时间和评分标准",
+    "fields": [
+      {
+        "label": "作业ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "teaching_class(id)；查询索引",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "教师ID",
+        "code": "teacher_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "作业标题",
+        "code": "assignment_title",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "作业内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "评分标准",
+        "code": "grading_rule",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "满分",
+        "code": "max_score",
+        "type": "DECIMAL(6,2)",
+        "nullable": false,
+        "default": "100",
+        "note": "大于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "截止时间",
+        "code": "deadline",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "允许补交",
+        "code": "allow_late",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0否；1是",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "发布状态",
+        "code": "publish_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1发布；2关闭",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "teaching_class_id"
+      ]
+    ]
+  },
+  {
+    "name": "submission",
+    "label": "作业提交表",
+    "purpose": "保存每轮提交内容、批改与退回记录",
+    "fields": [
+      {
+        "label": "提交ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "作业ID",
+        "code": "assignment_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "assignment(id)",
+        "key": "外键",
+        "ref": "assignment"
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "提交轮次",
+        "code": "submit_round",
+        "type": "INT",
+        "nullable": false,
+        "default": "1",
+        "note": "与作业ID、学生ID联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "提交内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "文本或附件至少一项",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "提交时间",
+        "code": "submit_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "提交状态",
+        "code": "submit_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0已提交；1退回；2已批改；3已发布",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "得分",
+        "code": "score",
+        "type": "DECIMAL(6,2)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "0至作业满分",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "批改反馈",
+        "code": "feedback",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "批改人ID",
+        "code": "grader_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "批改时间",
+        "code": "grade_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "assignment_id",
+        "student_id",
+        "submit_round"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "grade",
+    "label": "成绩表",
+    "purpose": "保存选课成绩、绩点及发布状态",
+    "fields": [
+      {
+        "label": "成绩ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "选课ID",
+        "code": "enrollment_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "enrollment(id)",
+        "key": "外键/唯一",
+        "ref": "enrollment"
+      },
+      {
+        "label": "审核ID",
+        "code": "review_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "grade_review(id)；查询索引",
+        "key": "外键",
+        "ref": "grade_review"
+      },
+      {
+        "label": "平时成绩",
+        "code": "usual_score",
+        "type": "DECIMAL(5,2)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "草稿可空；范围0至100",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "期末成绩",
+        "code": "final_score",
+        "type": "DECIMAL(5,2)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "草稿或缺考可空",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "总评成绩",
+        "code": "total_score",
+        "type": "DECIMAL(5,2)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "按权重计算；范围0至100",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "绩点",
+        "code": "grade_point",
+        "type": "DECIMAL(3,2)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "按学校绩点规则计算",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "考试标记",
+        "code": "exam_flag",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0正常；1缺考；2缓考；3免修",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "成绩状态",
+        "code": "grade_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1待审；2退回；3发布",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "录入人ID",
+        "code": "operator_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "发布时间",
+        "code": "publish_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "版本号",
+        "code": "version",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "enrollment_id"
+      ]
+    ],
+    "indexes": [
+      [
+        "review_id"
+      ]
+    ]
+  },
+  {
+    "name": "grade_review",
+    "label": "成绩审核表",
+    "purpose": "记录院系教学秘书每轮审核结论",
+    "fields": [
+      {
+        "label": "审核ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "teaching_class(id)",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "审核轮次",
+        "code": "review_round",
+        "type": "INT",
+        "nullable": false,
+        "default": "1",
+        "note": "与教学班ID联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "提交人ID",
+        "code": "submitter_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "提交时间",
+        "code": "submit_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "成绩快照",
+        "code": "grade_snapshot",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "提交时各成绩ID、版本与数值",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "异常提示",
+        "code": "warning_note",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "成绩分布异常及处理说明",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审核人ID",
+        "code": "reviewer_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "审核状态",
+        "code": "review_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待审；1通过；2退回",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审核意见",
+        "code": "review_comment",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审核时间",
+        "code": "review_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "teaching_class_id",
+        "review_round"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "grade_change",
+    "label": "成绩更正申请表",
+    "purpose": "保留成绩更正前后值及审批责任人",
+    "fields": [
+      {
+        "label": "更正ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "成绩ID",
+        "code": "grade_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "grade(id)；查询索引",
+        "key": "外键",
+        "ref": "grade"
+      },
+      {
+        "label": "申请人ID",
+        "code": "applicant_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "原成绩",
+        "code": "before_value",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "含分项、总评、绩点及版本",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "拟改成绩",
+        "code": "after_value",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "与原成绩同结构",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更正原因",
+        "code": "change_reason",
+        "type": "VARCHAR(255)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审核人ID",
+        "code": "reviewer_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "审核状态",
+        "code": "review_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待审；1通过；2驳回",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审核意见",
+        "code": "review_comment",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审核时间",
+        "code": "review_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "生效时间",
+        "code": "apply_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "审核通过后事务更新原成绩",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "grade_id"
+      ]
+    ]
+  },
+  {
+    "name": "exam_plan",
+    "label": "考试安排表",
+    "purpose": "保存课程考试地点、时间及监考安排",
+    "fields": [
+      {
+        "label": "考试ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "teaching_class(id)；查询索引",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "教室ID",
+        "code": "classroom_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "classroom(id)",
+        "key": "外键",
+        "ref": "classroom"
+      },
+      {
+        "label": "考试名称",
+        "code": "exam_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "开始时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束时间",
+        "code": "end_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "主监考ID",
+        "code": "invigilator_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "副监考ID",
+        "code": "assistant_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "安排状态",
+        "code": "plan_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1发布；2取消",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "teaching_class_id"
+      ],
+      [
+        "invigilator_id",
+        "start_time"
+      ]
+    ]
+  },
+  {
+    "name": "teaching_evaluation",
+    "label": "教学评价表",
+    "purpose": "记录学生对已选课程的教学评价",
+    "fields": [
+      {
+        "label": "评价ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "选课ID",
+        "code": "enrollment_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "enrollment(id)",
+        "key": "外键/唯一",
+        "ref": "enrollment"
+      },
+      {
+        "label": "综合评分",
+        "code": "total_score",
+        "type": "DECIMAL(5,2)",
+        "nullable": false,
+        "default": "",
+        "note": "0至100",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "指标评分",
+        "code": "item_scores",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "按系统配置保存指标及分值",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "评价意见",
+        "code": "comment",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "匿名展示",
+        "code": "is_anonymous",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0否；1是；教师端隐藏身份",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "提交时间",
+        "code": "submit_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "enrollment_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "leave_request",
+    "label": "请假单表",
+    "purpose": "保存请假申请、分级审批和销假信息",
+    "fields": [
+      {
+        "label": "请假ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "请假类型",
+        "code": "leave_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "请假类型字典",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "开始时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束时间",
+        "code": "end_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "必须晚于开始时间",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "请假天数",
+        "code": "leave_days",
+        "type": "DECIMAL(5,2)",
+        "nullable": false,
+        "default": "",
+        "note": "按校规计算；超过3天转院系",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "请假原因",
+        "code": "leave_reason",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "覆盖上课时段时通知授课教师",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "请假状态",
+        "code": "leave_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1辅导员审；2院系审；3通过；4驳回；5退回；6撤回；7销假",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "申请轮次",
+        "code": "apply_round",
+        "type": "INT",
+        "nullable": false,
+        "default": "1",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "提交时间",
+        "code": "submit_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "销假时间",
+        "code": "close_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "销假方式",
+        "code": "close_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0未销；1本人；2自动",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "销假人ID",
+        "code": "closer_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "user(id)；系统自动销假时为空",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "销假说明",
+        "code": "close_note",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "student_id",
+        "leave_status"
+      ]
+    ]
+  },
+  {
+    "name": "leave_approval",
+    "label": "请假审批记录表",
+    "purpose": "保留每轮审批节点、审批意见和时间",
+    "fields": [
+      {
+        "label": "审批ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "请假ID",
+        "code": "leave_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "leave_request(id)",
+        "key": "外键",
+        "ref": "leave_request"
+      },
+      {
+        "label": "申请轮次",
+        "code": "apply_round",
+        "type": "INT",
+        "nullable": false,
+        "default": "1",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "节点顺序",
+        "code": "node_order",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "与请假ID、申请轮次联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "节点类型",
+        "code": "node_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1辅导员；2院系领导",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审批人ID",
+        "code": "approver_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "审批结果",
+        "code": "decision",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待办；1同意；2驳回；3退回；4取消",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审批意见",
+        "code": "opinion",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "审批时间",
+        "code": "approve_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "leave_id",
+        "apply_round",
+        "node_order"
+      ]
+    ],
+    "indexes": [
+      [
+        "approver_id",
+        "decision"
+      ]
+    ]
+  },
+  {
+    "name": "student_record",
+    "label": "学生奖惩记录表",
+    "purpose": "登记奖励、处分及撤销情况",
+    "fields": [
+      {
+        "label": "记录ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "记录类型",
+        "code": "record_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1奖励；2处分",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "事项名称",
+        "code": "record_title",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "事项级别",
+        "code": "record_level",
+        "type": "VARCHAR(32)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "事项说明",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "发生日期",
+        "code": "record_date",
+        "type": "DATE",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "登记人ID",
+        "code": "operator_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "记录状态",
+        "code": "record_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1有效；2撤销",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "撤销原因",
+        "code": "revoke_reason",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "student_id",
+        "record_date"
+      ]
+    ]
+  },
+  {
+    "name": "dorm_check",
+    "label": "查寝晚归记录表",
+    "purpose": "保存学生查寝结果、晚归与处理意见",
+    "fields": [
+      {
+        "label": "查寝ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "宿舍位置",
+        "code": "dorm_location",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "检查时间",
+        "code": "check_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "检查结果",
+        "code": "check_result",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1正常；2晚归；3未归；4已请假",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "返寝时间",
+        "code": "return_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "处理意见",
+        "code": "handle_note",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "检查人ID",
+        "code": "checker_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "student_id",
+        "check_time"
+      ]
+    ]
+  },
+  {
+    "name": "student_focus",
+    "label": "重点关注记录表",
+    "purpose": "保存限权访问的重点关注与跟进信息",
+    "fields": [
+      {
+        "label": "关注ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "关注类别",
+        "code": "focus_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "关注内容",
+        "code": "focus_content",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "加密保存；禁止无授权导出",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "跟进记录",
+        "code": "follow_up",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "负责人ID",
+        "code": "owner_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "关注状态",
+        "code": "focus_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1跟进中；2已结束",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束时间",
+        "code": "close_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "student_id"
+      ],
+      [
+        "owner_id",
+        "focus_status"
+      ]
+    ]
+  },
+  {
+    "name": "aid_batch",
+    "label": "奖助贷批次表",
+    "purpose": "配置评审项目、申请时间与名额",
+    "fields": [
+      {
+        "label": "批次ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "批次名称",
+        "code": "batch_name",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "资助类型",
+        "code": "aid_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "组织ID",
+        "code": "org_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "org_unit(id)",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "学期ID",
+        "code": "semester_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "semester(id)；组合查询索引",
+        "key": "外键",
+        "ref": "semester"
+      },
+      {
+        "label": "开始时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束时间",
+        "code": "end_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "名额",
+        "code": "quota",
+        "type": "INT",
+        "nullable": false,
+        "default": "",
+        "note": "大于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "资助金额",
+        "code": "aid_amount",
+        "type": "DECIMAL(10,2)",
+        "nullable": false,
+        "default": "",
+        "note": "单位元；大于等于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "申请条件",
+        "code": "requirements",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "批次状态",
+        "code": "batch_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1开放；2评审；3结束",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "semester_id",
+        "org_id"
+      ]
+    ]
+  },
+  {
+    "name": "aid_application",
+    "label": "奖助贷申请表",
+    "purpose": "保存学生申请资料与评审进度",
+    "fields": [
+      {
+        "label": "申请ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "批次ID",
+        "code": "batch_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "aid_batch(id)",
+        "key": "外键",
+        "ref": "aid_batch"
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；与批次ID联合唯一",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "申请理由",
+        "code": "apply_reason",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "敏感资料按权限访问",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "申请金额",
+        "code": "apply_amount",
+        "type": "DECIMAL(10,2)",
+        "nullable": false,
+        "default": "",
+        "note": "单位元；大于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "申请状态",
+        "code": "apply_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1待评；2通过；3驳回；4退回；5撤回",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "申请轮次",
+        "code": "apply_round",
+        "type": "INT",
+        "nullable": false,
+        "default": "1",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "提交时间",
+        "code": "submit_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "batch_id",
+        "student_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "aid_review",
+    "label": "奖助贷评审记录表",
+    "purpose": "记录分级评审意见、评分和操作人",
+    "fields": [
+      {
+        "label": "评审ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "申请ID",
+        "code": "application_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "aid_application(id)",
+        "key": "外键",
+        "ref": "aid_application"
+      },
+      {
+        "label": "申请轮次",
+        "code": "apply_round",
+        "type": "INT",
+        "nullable": false,
+        "default": "1",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "节点顺序",
+        "code": "node_order",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "评审人ID",
+        "code": "reviewer_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；与申请ID、申请轮次、节点顺序联合唯一",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "评审分数",
+        "code": "review_score",
+        "type": "DECIMAL(5,2)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "评审结果",
+        "code": "decision",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待评；1通过；2驳回；3退回",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "评审意见",
+        "code": "opinion",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "评审时间",
+        "code": "review_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "application_id",
+        "apply_round",
+        "node_order",
+        "reviewer_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "service_application",
+    "label": "学生办事申请表",
+    "purpose": "统一保存证明开具与毕业离校申请",
+    "fields": [
+      {
+        "label": "申请ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "事项类型",
+        "code": "service_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1证明开具；2毕业离校",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "事项名称",
+        "code": "service_name",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "申请内容",
+        "code": "apply_data",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "按事项模板校验；敏感项加密",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "办理状态",
+        "code": "service_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1办理中；2办结；3退回；4撤回",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结果文件ID",
+        "code": "result_file_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "file_upload(id)",
+        "key": "外键",
+        "ref": "file_upload"
+      },
+      {
+        "label": "提交时间",
+        "code": "submit_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "办结时间",
+        "code": "finish_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "student_id",
+        "service_type"
+      ]
+    ]
+  },
+  {
+    "name": "service_step",
+    "label": "学生办事环节表",
+    "purpose": "记录证明审核或离校各部门办理环节",
+    "fields": [
+      {
+        "label": "环节ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "申请ID",
+        "code": "application_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "service_application(id)",
+        "key": "外键",
+        "ref": "service_application"
+      },
+      {
+        "label": "环节顺序",
+        "code": "step_order",
+        "type": "INT",
+        "nullable": false,
+        "default": "",
+        "note": "与申请ID联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "环节名称",
+        "code": "step_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "办理组织ID",
+        "code": "org_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "org_unit(id)",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "办理人ID",
+        "code": "handler_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "办理结果",
+        "code": "decision",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待办；1通过；2退回",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "办理意见",
+        "code": "opinion",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "办理时间",
+        "code": "handle_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "application_id",
+        "step_order"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "card_account",
+    "label": "校园卡账户表",
+    "purpose": "保存校园卡绑定关系及入账余额",
+    "fields": [
+      {
+        "label": "账户ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "用户ID",
+        "code": "user_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键/唯一",
+        "ref": "user"
+      },
+      {
+        "label": "校园卡号",
+        "code": "card_no",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "账户余额",
+        "code": "balance",
+        "type": "DECIMAL(12,2)",
+        "nullable": false,
+        "default": "0.00",
+        "note": "单位元；禁止负值",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "账户状态",
+        "code": "account_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0冻结；1正常；2注销",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "版本号",
+        "code": "version",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "账务并发控制",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "同步时间",
+        "code": "sync_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "外部卡系统对账时间",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "user_id"
+      ],
+      [
+        "card_no"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "recharge_order",
+    "label": "充值订单表",
+    "purpose": "通过验签支付回调确认充值并防重",
+    "fields": [
+      {
+        "label": "订单ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "充值单号",
+        "code": "order_no",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "账户ID",
+        "code": "account_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "card_account(id)；组合查询索引",
+        "key": "外键",
+        "ref": "card_account"
+      },
+      {
+        "label": "充值金额",
+        "code": "amount",
+        "type": "DECIMAL(12,2)",
+        "nullable": false,
+        "default": "",
+        "note": "单位元；必须大于0",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "支付渠道",
+        "code": "pay_channel",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "支付流水号",
+        "code": "pay_trade_no",
+        "type": "VARCHAR(64)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "与支付渠道联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "幂等键",
+        "code": "request_key",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "订单状态",
+        "code": "order_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待付；1支付成功待入账；2已入账；3关闭",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "支付时间",
+        "code": "pay_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "回调时间",
+        "code": "callback_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "验签并核对金额及订单",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "入账时间",
+        "code": "posted_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "与余额及流水同一事务",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "过期时间",
+        "code": "expire_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "order_no"
+      ],
+      [
+        "pay_channel",
+        "pay_trade_no"
+      ],
+      [
+        "request_key"
+      ]
+    ],
+    "indexes": [
+      [
+        "account_id",
+        "order_status"
+      ]
+    ]
+  },
+  {
+    "name": "card_transaction",
+    "label": "校园卡流水表",
+    "purpose": "保存充值、消费、退款及余额变动",
+    "fields": [
+      {
+        "label": "流水ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "流水号",
+        "code": "transaction_no",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "账户ID",
+        "code": "account_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "card_account(id)；组合查询索引",
+        "key": "外键",
+        "ref": "card_account"
+      },
+      {
+        "label": "充值订单ID",
+        "code": "recharge_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "recharge_order(id)；充值入账时必填",
+        "key": "外键/唯一",
+        "ref": "recharge_order"
+      },
+      {
+        "label": "来源系统",
+        "code": "source_system",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "来源流水号",
+        "code": "source_trade_no",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "与来源系统联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "交易类型",
+        "code": "transaction_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1充值；2消费；3退款",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "变动金额",
+        "code": "amount",
+        "type": "DECIMAL(12,2)",
+        "nullable": false,
+        "default": "",
+        "note": "单位元；收入正、支出负",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "变动前余额",
+        "code": "balance_before",
+        "type": "DECIMAL(12,2)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "变动后余额",
+        "code": "balance_after",
+        "type": "DECIMAL(12,2)",
+        "nullable": false,
+        "default": "",
+        "note": "前余额加变动金额；非负",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "商户名称",
+        "code": "merchant_name",
+        "type": "VARCHAR(128)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "交易时间",
+        "code": "transaction_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "transaction_no"
+      ],
+      [
+        "recharge_id"
+      ],
+      [
+        "source_system",
+        "source_trade_no"
+      ]
+    ],
+    "indexes": [
+      [
+        "account_id",
+        "transaction_time"
+      ]
+    ]
+  },
+  {
+    "name": "book",
+    "label": "图书书目表",
+    "purpose": "保存图书检索所需的书目信息",
+    "fields": [
+      {
+        "label": "图书ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "书目编码",
+        "code": "book_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "ISBN",
+        "code": "isbn",
+        "type": "VARCHAR(20)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "查询索引",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "书名",
+        "code": "book_name",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "查询索引",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "作者",
+        "code": "author",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "出版社",
+        "code": "publisher",
+        "type": "VARCHAR(128)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "分类编码",
+        "code": "category_code",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "查询索引",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "内容简介",
+        "code": "summary",
+        "type": "TEXT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "封面ID",
+        "code": "cover_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "file_upload(id)",
+        "key": "外键",
+        "ref": "file_upload"
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "book_code"
+      ]
+    ],
+    "indexes": [
+      [
+        "isbn"
+      ],
+      [
+        "book_name"
+      ],
+      [
+        "category_code"
+      ]
+    ]
+  },
+  {
+    "name": "book_copy",
+    "label": "图书馆藏副本表",
+    "purpose": "区分同一书目的实体册与可借状态",
+    "fields": [
+      {
+        "label": "副本ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "图书ID",
+        "code": "book_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "book(id)；组合查询索引",
+        "key": "外键",
+        "ref": "book"
+      },
+      {
+        "label": "馆藏条码",
+        "code": "copy_no",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "馆藏位置",
+        "code": "location",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "副本状态",
+        "code": "copy_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0可借；1借出；2预约留置；3停用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "版本号",
+        "code": "version",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "借出及预约并发控制",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "copy_no"
+      ]
+    ],
+    "indexes": [
+      [
+        "book_id",
+        "copy_status"
+      ]
+    ]
+  },
+  {
+    "name": "book_loan",
+    "label": "图书借阅记录表",
+    "purpose": "保存借出、到期、续借与归还记录",
+    "fields": [
+      {
+        "label": "借阅ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "读者ID",
+        "code": "reader_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "副本ID",
+        "code": "copy_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "book_copy(id)；事务锁定副本；同册仅一笔未还；组合查询索引",
+        "key": "外键",
+        "ref": "book_copy"
+      },
+      {
+        "label": "外部借阅号",
+        "code": "external_loan_no",
+        "type": "VARCHAR(64)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "借出时间",
+        "code": "borrow_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "应还时间",
+        "code": "due_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "归还时间",
+        "code": "return_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "续借次数",
+        "code": "renew_count",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "最近续借",
+        "code": "renew_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "借阅状态",
+        "code": "loan_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0借阅中；1已归还；2挂失",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "external_loan_no"
+      ]
+    ],
+    "indexes": [
+      [
+        "reader_id",
+        "loan_status"
+      ],
+      [
+        "copy_id",
+        "loan_status"
+      ]
+    ]
+  },
+  {
+    "name": "book_reservation",
+    "label": "图书预约表",
+    "purpose": "记录预约队列、到书通知与取书期限",
+    "fields": [
+      {
+        "label": "预约ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "读者ID",
+        "code": "reader_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；锁定读者行；同书仅一条有效预约；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "图书ID",
+        "code": "book_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "book(id)；组合查询索引",
+        "key": "外键",
+        "ref": "book"
+      },
+      {
+        "label": "留置副本ID",
+        "code": "copy_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "book_copy(id)",
+        "key": "外键",
+        "ref": "book_copy"
+      },
+      {
+        "label": "幂等键",
+        "code": "request_key",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "预约时间",
+        "code": "reserve_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "取书截止",
+        "code": "expire_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "预约状态",
+        "code": "reserve_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0排队；1可取；2完成；3取消；4过期",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "通知时间",
+        "code": "notify_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "request_key"
+      ]
+    ],
+    "indexes": [
+      [
+        "book_id",
+        "reserve_status",
+        "reserve_time"
+      ],
+      [
+        "reader_id",
+        "book_id"
+      ]
+    ]
+  },
+  {
+    "name": "notice",
+    "label": "通知公告表",
+    "purpose": "保存通知内容、有效期和紧急等级",
+    "fields": [
+      {
+        "label": "通知ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "通知标题",
+        "code": "notice_title",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "通知内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "发布人ID",
+        "code": "publisher_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "紧急等级",
+        "code": "urgency_level",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0普通；1重要；2紧急",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "是否置顶",
+        "code": "is_pinned",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0否；1是",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "需要回执",
+        "code": "need_ack",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0否；1是；紧急通知须为1",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "生效时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "失效时间",
+        "code": "expire_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "发布时间",
+        "code": "publish_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "发布状态",
+        "code": "publish_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0草稿；1已发布；2撤回；组合查询索引",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "publish_status",
+        "publish_time"
+      ]
+    ]
+  },
+  {
+    "name": "notice_scope",
+    "label": "通知范围表",
+    "purpose": "限定通知对应的学校、组织、班级或课程",
+    "fields": [
+      {
+        "label": "范围ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "通知ID",
+        "code": "notice_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "notice(id)；查询索引",
+        "key": "外键",
+        "ref": "notice"
+      },
+      {
+        "label": "范围类型",
+        "code": "scope_type",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "1全校；2组织；3班级；4教学班",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "组织ID",
+        "code": "org_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "org_unit(id)",
+        "key": "外键",
+        "ref": "org_unit"
+      },
+      {
+        "label": "班级ID",
+        "code": "class_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "school_class(id)",
+        "key": "外键",
+        "ref": "school_class"
+      },
+      {
+        "label": "教学班ID",
+        "code": "teaching_class_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "teaching_class(id)；全校时均空；其他类型仅对应ID非空",
+        "key": "外键",
+        "ref": "teaching_class"
+      },
+      {
+        "label": "包含下级",
+        "code": "include_children",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0否；1是；仅组织范围有效",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "notice_id"
+      ]
+    ]
+  },
+  {
+    "name": "message",
+    "label": "站内消息表",
+    "purpose": "保存通知和业务结果的统一消息内容",
+    "fields": [
+      {
+        "label": "消息ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "消息标题",
+        "code": "message_title",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "消息内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "通知ID",
+        "code": "notice_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "notice(id)",
+        "key": "外键",
+        "ref": "notice"
+      },
+      {
+        "label": "业务类型",
+        "code": "biz_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "请假、成绩、选课、充值等",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "业务ID",
+        "code": "biz_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "按类型校验的逻辑引用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "事件编码",
+        "code": "event_key",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "需要回执",
+        "code": "need_ack",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0否；1是",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "失效时间",
+        "code": "expire_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "event_key"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "message_receipt",
+    "label": "消息回执表",
+    "purpose": "按接收人记录送达、已读和确认状态",
+    "fields": [
+      {
+        "label": "回执ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "消息ID",
+        "code": "message_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "message(id)",
+        "key": "外键",
+        "ref": "message"
+      },
+      {
+        "label": "接收人ID",
+        "code": "receiver_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；与消息ID联合唯一；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "送达状态",
+        "code": "delivery_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待送；1已送；2失败",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "送达时间",
+        "code": "delivered_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "阅读时间",
+        "code": "read_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "确认时间",
+        "code": "ack_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "重试次数",
+        "code": "retry_count",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "失败原因",
+        "code": "error_message",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "message_id",
+        "receiver_id"
+      ]
+    ],
+    "indexes": [
+      [
+        "receiver_id",
+        "read_time"
+      ]
+    ]
+  },
+  {
+    "name": "file_upload",
+    "label": "文件上传记录表",
+    "purpose": "保存对象存储元数据、业务归属和检测状态",
+    "fields": [
+      {
+        "label": "文件ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "存储桶",
+        "code": "bucket_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "对象键",
+        "code": "object_key",
+        "type": "VARCHAR(255)",
+        "nullable": false,
+        "default": "",
+        "note": "与存储桶联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "原始文件名",
+        "code": "original_name",
+        "type": "VARCHAR(255)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "文件类型",
+        "code": "mime_type",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "文件大小",
+        "code": "file_size",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "单位字节；上限100MB",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "内容哈希",
+        "code": "file_hash",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "SHA-256",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "业务类型",
+        "code": "biz_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "组合查询索引",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "业务ID",
+        "code": "biz_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "按类型校验；附件绑定后必填",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "上传人ID",
+        "code": "uploader_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "检测状态",
+        "code": "scan_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待检；1通过；2拒绝",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "文件状态",
+        "code": "file_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0临时；1已绑定；2待清理",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "bucket_name",
+        "object_key"
+      ]
+    ],
+    "indexes": [
+      [
+        "biz_type",
+        "biz_id"
+      ]
+    ]
+  },
+  {
+    "name": "system_config",
+    "label": "系统配置字典表",
+    "purpose": "维护系统参数、字典项和规则配置",
+    "fields": [
+      {
+        "label": "配置ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "配置分组",
+        "code": "config_group",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "配置编码",
+        "code": "config_key",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "与配置分组联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "配置名称",
+        "code": "config_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "配置值",
+        "code": "config_value",
+        "type": "TEXT",
+        "nullable": false,
+        "default": "",
+        "note": "不保存明文密钥",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "值类型",
+        "code": "value_type",
+        "type": "VARCHAR(16)",
+        "nullable": false,
+        "default": "",
+        "note": "string、number、bool或json",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "配置说明",
+        "code": "description",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "排序值",
+        "code": "sort_order",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "启用状态",
+        "code": "is_enabled",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0停用；1启用",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新人ID",
+        "code": "updater_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "config_group",
+        "config_key"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "audit_log",
+    "label": "操作审计日志表",
+    "purpose": "留痕登录、授权、审批、账务和敏感查询",
+    "fields": [
+      {
+        "label": "日志ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "操作人ID",
+        "code": "operator_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "user(id)；系统任务或登录失败可空；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "操作类型",
+        "code": "action_type",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "业务类型",
+        "code": "biz_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "组合查询索引",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "业务ID",
+        "code": "biz_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "逻辑引用；不随业务删除",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "请求标识",
+        "code": "request_id",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "来源地址",
+        "code": "ip_address",
+        "type": "VARCHAR(45)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "变更摘要",
+        "code": "change_data",
+        "type": "JSON",
+        "nullable": true,
+        "default": "NULL",
+        "note": "保存脱敏前后值；不记凭据",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "操作结果",
+        "code": "result_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "1",
+        "note": "0失败；1成功",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "二次确认",
+        "code": "confirmed",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0否；1是",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "操作时间",
+        "code": "operate_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [],
+    "indexes": [
+      [
+        "operator_id",
+        "operate_time"
+      ],
+      [
+        "biz_type",
+        "biz_id"
+      ]
+    ]
+  },
+  {
+    "name": "async_task",
+    "label": "异步任务表",
+    "purpose": "管理导入、导出和统计报表任务进度",
+    "fields": [
+      {
+        "label": "任务ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "任务编码",
+        "code": "task_no",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "任务类型",
+        "code": "task_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "发起人ID",
+        "code": "creator_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "任务参数",
+        "code": "task_params",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "记录过滤条件和数据权限快照",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "输入文件ID",
+        "code": "input_file_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "file_upload(id)",
+        "key": "外键",
+        "ref": "file_upload"
+      },
+      {
+        "label": "结果文件ID",
+        "code": "result_file_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "file_upload(id)",
+        "key": "外键",
+        "ref": "file_upload"
+      },
+      {
+        "label": "任务状态",
+        "code": "task_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0等待；1执行中；2成功；3失败；4取消",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "完成进度",
+        "code": "progress",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0至100",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "失败原因",
+        "code": "error_message",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "开始时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "结束时间",
+        "code": "finish_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "task_no"
+      ]
+    ],
+    "indexes": [
+      [
+        "creator_id",
+        "task_status"
+      ]
+    ]
+  },
+  {
+    "name": "outbox_event",
+    "label": "可靠消息事件表",
+    "purpose": "保存待投递事件并支持消息队列重试",
+    "fields": [
+      {
+        "label": "事件ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "事件编码",
+        "code": "event_key",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "事件类型",
+        "code": "event_type",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "事件内容",
+        "code": "payload",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "与业务同事务写入；不含明文敏感信息",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "投递状态",
+        "code": "send_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待发；1发送中；2已确认；3失败；组合查询索引",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "重试次数",
+        "code": "retry_count",
+        "type": "INT",
+        "nullable": false,
+        "default": "0",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "下次重试",
+        "code": "next_retry_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "锁定截止",
+        "code": "lock_until",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "工作进程中断后可重领",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "确认时间",
+        "code": "confirmed_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "错误摘要",
+        "code": "error_message",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "event_key"
+      ]
+    ],
+    "indexes": [
+      [
+        "send_status",
+        "next_retry_time"
+      ]
+    ]
+  },
+  {
+    "name": "device",
+    "label": "用户设备表",
+    "purpose": "登记鸿蒙终端绑定关系和信任状态",
+    "fields": [
+      {
+        "label": "设备ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "用户ID",
+        "code": "user_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "设备标识",
+        "code": "device_code",
+        "type": "VARCHAR(128)",
+        "nullable": false,
+        "default": "",
+        "note": "存储脱敏标识；与用户ID联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "设备名称",
+        "code": "device_name",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "设备类型",
+        "code": "device_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "手机、平板、手表或智慧屏",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "推送标识",
+        "code": "push_token",
+        "type": "VARCHAR(512)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "加密保存",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "信任状态",
+        "code": "trust_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0未认证；1可信；2撤销",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "最近在线",
+        "code": "last_seen_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "user_id",
+        "device_code"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "continuation",
+    "label": "跨设备流转任务表",
+    "purpose": "控制身份、可访问范围和流转超时回收",
+    "fields": [
+      {
+        "label": "流转ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "用户ID",
+        "code": "user_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；组合查询索引",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "源设备ID",
+        "code": "source_device_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "device(id)",
+        "key": "外键",
+        "ref": "device"
+      },
+      {
+        "label": "目标设备ID",
+        "code": "target_device_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "device(id)；接收前校验属于同一用户",
+        "key": "外键",
+        "ref": "device"
+      },
+      {
+        "label": "业务类型",
+        "code": "biz_type",
+        "type": "VARCHAR(32)",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "业务ID",
+        "code": "biz_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "逻辑引用；重新校验业务权限",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "授权范围",
+        "code": "scope_data",
+        "type": "JSON",
+        "nullable": false,
+        "default": "",
+        "note": "最小必要字段；不可扩大权限",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "流转凭证哈希",
+        "code": "token_hash",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "一次性凭证；仅存哈希",
+        "key": "唯一键",
+        "ref": null
+      },
+      {
+        "label": "流转状态",
+        "code": "task_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待接收；1已接收；2完成；3过期；4撤销",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "失效时间",
+        "code": "expire_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "接收时间",
+        "code": "accept_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "回收时间",
+        "code": "reclaim_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "token_hash"
+      ]
+    ],
+    "indexes": [
+      [
+        "user_id",
+        "task_status"
+      ]
+    ]
+  },
+  {
+    "name": "attendance_task",
+    "label": "课程签到任务表",
+    "purpose": "支持移动端与智慧屏课堂签到场景",
+    "fields": [
+      {
+        "label": "签到任务ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "课表ID",
+        "code": "timetable_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "timetable(id)",
+        "key": "外键",
+        "ref": "timetable"
+      },
+      {
+        "label": "发起人ID",
+        "code": "creator_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "上课日期",
+        "code": "class_date",
+        "type": "DATE",
+        "nullable": false,
+        "default": "",
+        "note": "与课表ID联合唯一",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "开始时间",
+        "code": "start_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "截止时间",
+        "code": "end_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "签到码哈希",
+        "code": "code_hash",
+        "type": "VARCHAR(64)",
+        "nullable": false,
+        "default": "",
+        "note": "短期凭证；仅存哈希",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "任务状态",
+        "code": "task_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0未开；1开放；2结束",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "timetable_id",
+        "class_date"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "attendance_record",
+    "label": "课程签到记录表",
+    "purpose": "记录学生签到结果并避免重复签到",
+    "fields": [
+      {
+        "label": "签到ID",
+        "code": "id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "自增长类型",
+        "key": "主键",
+        "ref": null
+      },
+      {
+        "label": "签到任务ID",
+        "code": "task_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "attendance_task(id)",
+        "key": "外键",
+        "ref": "attendance_task"
+      },
+      {
+        "label": "学生ID",
+        "code": "student_id",
+        "type": "BIGINT",
+        "nullable": false,
+        "default": "",
+        "note": "user(id)；与签到任务ID联合唯一",
+        "key": "外键",
+        "ref": "user"
+      },
+      {
+        "label": "签到结果",
+        "code": "sign_status",
+        "type": "TINYINT",
+        "nullable": false,
+        "default": "0",
+        "note": "0待签；1已签；2迟到；3请假；4缺勤",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "签到时间",
+        "code": "sign_time",
+        "type": "DATETIME",
+        "nullable": true,
+        "default": "NULL",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "设备ID",
+        "code": "device_id",
+        "type": "BIGINT",
+        "nullable": true,
+        "default": "NULL",
+        "note": "device(id)",
+        "key": "外键",
+        "ref": "device"
+      },
+      {
+        "label": "备注",
+        "code": "remark",
+        "type": "VARCHAR(255)",
+        "nullable": true,
+        "default": "NULL",
+        "note": "须验证在课名单和任务有效期",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "创建时间",
+        "code": "create_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "",
+        "key": "",
+        "ref": null
+      },
+      {
+        "label": "更新时间",
+        "code": "update_time",
+        "type": "DATETIME",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "note": "更新时由服务端写入",
+        "key": "",
+        "ref": null
+      }
+    ],
+    "unique": [
+      [
+        "task_id",
+        "student_id"
+      ]
+    ],
+    "indexes": []
+  }
+]

@@ -1,0 +1,38 @@
+name: zhixiaotong-demo
+services:
+  db:
+    image: mysql:8.0.43
+    environment:
+      MYSQL_DATABASE: zhixiaotong
+      MYSQL_USER: zhixiaotong
+      MYSQL_PASSWORD: campus_demo_2026
+      MYSQL_ROOT_PASSWORD: local_demo_root_only_2026
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:13306:3306"
+    volumes:
+      - demo_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h127.0.0.1 -u$$MYSQL_USER -D$$MYSQL_DATABASE -e 'SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  app:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: demo
+      DB_URL: "jdbc:mysql://db:3306/zhixiaotong?useUnicode=true&characterEncoding=utf8&connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true"
+      DB_USER: zhixiaotong
+      DB_PASSWORD: campus_demo_2026
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - demo_files:/app/data/files
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  demo_mysql:
+  demo_files:

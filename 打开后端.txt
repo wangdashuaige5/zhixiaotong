@@ -1,0 +1,3 @@
+cd C:\Users\DELL\Desktop\zhixiaotong\houduan
+
+java '-Duser.timezone=Asia/Shanghai' -jar dist\zhixiaotong-backend-1.0.0.jar --spring.profiles.active=demo --spring.flyway.enabled=false '--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/zhixiaotong?useUnicode=true&characterEncoding=utf8' --spring.datasource.username=root --spring.datasource.password=123456

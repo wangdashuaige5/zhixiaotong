@@ -1,0 +1,184 @@
+@base = http://localhost:8080
+@student_token = 在此粘贴学生access_token
+@teacher_token = 在此粘贴教师access_token
+@counselor_token = 在此粘贴辅导员access_token
+@secretary_token = 在此粘贴教学秘书access_token
+@admin_token = 在此粘贴管理员access_token
+@enrollment_id = 1
+@leave_id = 1
+@grade_review_id = 1
+@task_id = 1
+
+### 1 登录。切换user_name可取得其他角色令牌，日期和业务ID按实际返回修改。
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{"user_name":"student_demo","password":"Demo@123456","device_code":"demo-phone"}
+
+### 2 个人身份
+GET {{base}}/api/users/me
+Authorization: Bearer {{student_token}}
+
+### 3 可见选课批次
+GET {{base}}/api/enrollments/batches
+Authorization: Bearer {{student_token}}
+
+### 4 可选课程，batch_course_id取data.items里的id
+GET {{base}}/api/enrollments/options?batch_id=1&page_no=1&page_size=20
+Authorization: Bearer {{student_token}}
+
+### 5 选课。同一业务重试沿用request_key；新业务用新的唯一键。
+POST {{base}}/api/enrollments
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{"batch_course_id":"1","request_key":"demo-enroll-001"}
+
+### 6 本人课表
+GET {{base}}/api/timetables?semester_id=1&week_no=1
+Authorization: Bearer {{student_token}}
+
+### 7 课程详情
+GET {{base}}/api/courses/1?teaching_class_id=1
+Authorization: Bearer {{student_token}}
+
+### 8 教师登录，将access_token填入teacher_token
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{"user_name":"teacher_demo","password":"Demo@123456","device_code":"demo-teacher-pc"}
+
+### 9 教师成绩列表，获取enrollment_id、已有grade的version
+GET {{base}}/api/courses/1/grades?teaching_class_id=1
+Authorization: Bearer {{teacher_token}}
+
+### 10 保存成绩草稿；已有成绩必须提供返回的最新version
+PUT {{base}}/api/courses/1/grades
+Authorization: Bearer {{teacher_token}}
+Content-Type: application/json
+
+{"teaching_class_id":"1","items":[{"enrollment_id":"{{enrollment_id}}","usual_score":"80.00","final_score":"90.00","exam_flag":0,"version":0}]}
+
+### 11 提交成绩审核，记录返回的grade_review.id
+POST {{base}}/api/courses/1/grades/submit
+Authorization: Bearer {{teacher_token}}
+Content-Type: application/json
+
+{"teaching_class_id":"1"}
+
+### 12 教学秘书审核，不能用教师本人账号审核
+POST {{base}}/api/grade-reviews/{{grade_review_id}}
+Authorization: Bearer {{secretary_token}}
+Content-Type: application/json
+
+{"decision":1,"review_comment":"核对通过"}
+
+### 13 学生只能看已发布成绩
+GET {{base}}/api/grades/me
+Authorization: Bearer {{student_token}}
+
+### 14 学生请假，修改为实际起止时间。<=3天辅导员，>3天还需院系审批。
+POST {{base}}/api/leaves
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{"leave_type":"事假","start_time":"2026-09-10T08:00:00+08:00","end_time":"2026-09-12T08:00:00+08:00","leave_reason":"演示申请","action":"submit","file_ids":[]}
+
+### 15 辅导员待办
+GET {{base}}/api/leaves/pending
+Authorization: Bearer {{counselor_token}}
+
+### 16 辅导员批准。退回用decision=3并填写opinion；apply_round/node_order取当前单据。
+POST {{base}}/api/leaves/{{leave_id}}/approve
+Authorization: Bearer {{counselor_token}}
+Content-Type: application/json
+
+{"apply_round":1,"node_order":1,"decision":1,"opinion":"同意"}
+
+### 17 学生销假
+POST {{base}}/api/leaves/{{leave_id}}/close
+Authorization: Bearer {{student_token}}
+
+### 18 模拟校园卡余额
+GET {{base}}/api/cards/balance
+Authorization: Bearer {{student_token}}
+
+### 19 创建模拟充值单，不会真实扣款。验签回调样例用tools/mock_payment.py。
+POST {{base}}/api/cards/recharges
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{"amount":"20.00","pay_channel":"MOCK_PAY","request_key":"demo-recharge-001"}
+
+### 20 图书检索
+GET {{base}}/api/library/books?keywords=Java
+Authorization: Bearer {{student_token}}
+
+### 21 图书预约
+POST {{base}}/api/library/reservations
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{"book_id":"1","request_key":"demo-reserve-001"}
+
+### 22 辅导员向所辖班级发布通知
+POST {{base}}/api/notices
+Authorization: Bearer {{counselor_token}}
+Content-Type: application/json
+
+{"notice_title":"班级通知","content":"请查看班级事项。","urgency_level":2,"need_ack":1,"scopes":[{"scope_type":3,"class_id":"1"}],"file_ids":[]}
+
+### 23 站内消息，定时分发后可见
+GET {{base}}/api/messages
+Authorization: Bearer {{student_token}}
+
+### 24 鸿蒙设备登记，须和当前登录device_code一致并再次核验密码
+POST {{base}}/api/devices
+Authorization: Bearer {{student_token}}
+Content-Type: application/json
+
+{"device_code":"demo-phone","device_name":"演示手机","device_type":"phone","password":"Demo@123456"}
+
+### 25 今日卡片数据，不含原生ArkTS卡片代码
+GET {{base}}/api/harmony/cards/today
+Authorization: Bearer {{student_token}}
+
+### 26 管理后台用户导出，待完成后从result_file_id下载
+POST {{base}}/api/admin/tasks
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{"task_type":"USER_EXPORT","task_params":{"org_id":"2"}}
+
+### 27 查询异步任务
+GET {{base}}/api/admin/tasks/{{task_id}}
+Authorization: Bearer {{admin_token}}
+
+### 28 导入流程：先POST /api/files上传CSV，创建USER_IMPORT/GRADE_IMPORT，等待phase=validated且error_count=0，最后确认
+POST {{base}}/api/admin/tasks/{{task_id}}/confirm
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{"confirmed":true}
+
+### 29 后台基础数据：resource支持courses/classes/classrooms/counselors/prerequisites/aid-batches/books/book-copies/configs/exams等
+GET {{base}}/api/admin/data/courses
+Authorization: Bearer {{admin_token}}
+
+### 30 基础统计
+GET {{base}}/api/admin/reports/summary
+Authorization: Bearer {{admin_token}}
+
+### 31 配置文件大小上限，若已有同键配置须带该记录id更新
+POST {{base}}/api/admin/data/configs
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{"confirmed":true,"config_group":"file","config_key":"file.max_mb","config_name":"最大上传MB","config_value":"50","value_type":"number","is_enabled":1}
+
+### 32 授予学生角色，先用用户创建接口建立账号；角色id以后台返回为准
+PUT {{base}}/api/admin/users/8/roles
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{"confirmed":true,"role_ids":["1"]}

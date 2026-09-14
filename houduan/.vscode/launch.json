@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "运行智校通演示后端（先启动MySQL）",
+      "request": "launch",
+      "mainClass": "com.zhixiaotong.CampusApplication",
+      "projectName": "zhixiaotong-backend",
+      "cwd": "${workspaceFolder}",
+      "args": "--spring.profiles.active=demo",
+      "vmArgs": "-Duser.timezone=Asia/Shanghai",
+      "env": {
+        "DB_URL": "jdbc:mysql://127.0.0.1:13306/zhixiaotong?useUnicode=true&characterEncoding=utf8&connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true",
+        "DB_USER": "zhixiaotong",
+        "DB_PASSWORD": "campus_demo_2026"
+      }
+    }
+  ]
+}

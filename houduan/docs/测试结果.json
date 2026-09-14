@@ -1,0 +1,171 @@
+{
+  "verified_at": "2026-09-07",
+  "java": "Amazon Corretto 17",
+  "maven": "3.9.9",
+  "database": "H2 MySQL compatibility mode; isolated in-memory test DB",
+  "tests": [
+    {
+      "class": "com.zhixiaotong.BusinessRulesTest",
+      "name": "leaveBoundaryAndJsonDate",
+      "seconds": "0.066"
+    },
+    {
+      "class": "com.zhixiaotong.BusinessRulesTest",
+      "name": "encryptionIsAuthenticated",
+      "seconds": "0.022"
+    },
+    {
+      "class": "com.zhixiaotong.BusinessRulesTest",
+      "name": "oppositeParityAndTouchingTimesDoNotClash",
+      "seconds": "0.001"
+    },
+    {
+      "class": "com.zhixiaotong.BusinessRulesTest",
+      "name": "scoreWeightsAndMissingExam",
+      "seconds": "0.001"
+    },
+    {
+      "class": "com.zhixiaotong.BusinessRulesTest",
+      "name": "csvQuotedNewlinesAndFormulaProtection",
+      "seconds": "0.001"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "contextAndSchema",
+      "seconds": "10.754"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "authenticationAndRefreshReplay",
+      "seconds": "0.481"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "enrollmentIdempotencyAndOwnership",
+      "seconds": "0.013"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "gradeSnapshotReviewAndCorrection",
+      "seconds": "0.021"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "leaveThreeDaysAndLongRoute",
+      "seconds": "0.021"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "rechargeCallbackPostsOnlyOnce",
+      "seconds": "0.006"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "libraryRenewAndReservation",
+      "seconds": "0.008"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "leaveReturnCreatesNewRound",
+      "seconds": "0.011"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "attachmentContentAndOwnership",
+      "seconds": "0.045"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "noticeDeliveryDeduplicatesReadAndAck",
+      "seconds": "0.01"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "trustedContinuationIsSingleUse",
+      "seconds": "0.816"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "asyncExportAndValidatedImport",
+      "seconds": "0.417"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "sensitiveStudentRecordsAreScoped",
+      "seconds": "0.004"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "hundredConcurrentSelectionsNeverOversell",
+      "seconds": "0.095"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "httpQueriesAndOpenApi",
+      "seconds": "0.632"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "aidQuotaPreventsSecondApproval",
+      "seconds": "0.006"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "assignmentGradeOnlyVisibleAfterPublish",
+      "seconds": "0.006"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "attendanceRequiresEnrollmentTrustedDeviceAndValidCode",
+      "seconds": "0.005"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "adminConfirmationAndDelegationBoundary",
+      "seconds": "0.004"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "enrollmentConflictsDropAndClosedBatch",
+      "seconds": "0.009"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "everyDetailedDesignEndpointIsRegistered",
+      "seconds": "0.003"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "realHttpPaymentCallbackRejectsBadSignature",
+      "seconds": "0.01"
+    },
+    {
+      "class": "com.zhixiaotong.CampusIntegrationTest",
+      "name": "libraryWaitingQueueGetsReleasedCopy",
+      "seconds": "0.004"
+    }
+  ],
+  "suites": [
+    {
+      "name": "com.zhixiaotong.BusinessRulesTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.098",
+      "timestamp": null
+    },
+    {
+      "name": "com.zhixiaotong.CampusIntegrationTest",
+      "tests": "23",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "19.034",
+      "timestamp": null
+    }
+  ],
+  "api_count": 104,
+  "design_api_count": 82,
+  "jar_sha256": "1435d24f2fa0b6c1cd73629307fb6e8c6e2da09a2938fb092d416cf4c6c83a46"
+}
