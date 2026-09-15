@@ -17,14 +17,14 @@ class SelectOptionItem {
 struct TimetablePage {
   @State semesters: SemesterItem[] = [];
   @State semesterOptions: SelectOptionItem[] = [];
-  @State weekOptions: SelectOptionItem[] = [];
+  @State weekCount: number = 1;
   @State selectedSemesterIndex: number = 0;
   @State currentSemesterId: string = '';
   @State semesterStart: string = '';
   @State selectedWeek: number = 1;
   @State todayText: string = '';
   @State items: TimetableItem[] = [];
-  @State maxPeriod: number = 6;
+  @State maxPeriod: number = 10;
   @State loading: boolean = true;
   @State error: string = '';
 
@@ -36,6 +36,10 @@ struct TimetablePage {
     try {
       this.semesters = await CampusApi.semesters();
       this.semesterOptions = this.semesters.map((item: SemesterItem) => new SelectOptionItem(item.semester_name));
+      if (this.semesters.length === 0) {
+        this.items = [];
+        return;
+      }
       let currentIndex = this.semesters.findIndex((item: SemesterItem) => item.is_current === 1);
       if (currentIndex < 0) {
         currentIndex = 0;
@@ -45,10 +49,7 @@ struct TimetablePage {
       this.currentSemesterId = current.id;
       this.semesterStart = current.start_date;
       this.todayText = this.dateText(new Date());
-      this.weekOptions = [];
-      for (let i = 1; i <= current.week_count; i++) {
-        this.weekOptions.push(new SelectOptionItem(`第${i}周`));
-      }
+      this.weekCount = Math.max(1, current.week_count);
       let week = this.currentWeek(current.start_date);
       if (week < 1) {
         week = 1;
@@ -107,7 +108,7 @@ struct TimetablePage {
     this.error = '';
     try {
       this.items = await CampusApi.timetables(this.currentSemesterId, this.selectedWeek);
-      let max = 5;
+      let max = 10;
       for (let i = 0; i < this.items.length; i++) {
         if (this.items[i].end_period > max) {
           max = this.items[i].end_period;
@@ -127,27 +128,28 @@ struct TimetablePage {
   }
 
   onSemesterSelect(index: number): void {
-    if (index === this.selectedSemesterIndex) {
+    if (this.loading || index === this.selectedSemesterIndex) {
       return;
     }
     this.selectedSemesterIndex = index;
     let current = this.semesters[index];
     this.currentSemesterId = current.id;
     this.semesterStart = current.start_date;
-    this.weekOptions = [];
-    for (let i = 1; i <= current.week_count; i++) {
-      this.weekOptions.push(new SelectOptionItem(`第${i}周`));
-    }
+    this.weekCount = Math.max(1, current.week_count);
     this.selectedWeek = 1;
     this.loadTimetable();
   }
 
-  onWeekSelect(index: number): void {
-    this.selectedWeek = index + 1;
+  // 功能：左右箭头切换上一周/下一周，首尾周禁止越界。
+  changeWeek(offset: number): void {
+    const week = this.selectedWeek + offset;
+    if (this.loading || week < 1 || week > this.weekCount) { return; }
+    this.selectedWeek = week;
     this.loadTimetable();
   }
 
   backToToday(): void {
+    if (this.loading || this.semesters.length === 0) { return; }
     let current = this.semesters[this.selectedSemesterIndex];
     let week = this.currentWeek(current.start_date);
     if (week < 1) {
@@ -160,12 +162,17 @@ struct TimetablePage {
     this.loadTimetable();
   }
 
-  periodRows(): string {
-    let parts: string[] = [];
-    for (let i = 0; i < this.maxPeriod; i++) {
-      parts.push('56vp');
-    }
-    return parts.join(' ');
+  // 功能：详情复用课表接口已有字段，不增加后端接口。
+  showCourse(period: number, day: number): void {
+    let courses = this.items.filter((item: TimetableItem) => item.week_day === day &&
+      item.start_period <= period && item.end_period >= period);
+    if (courses.length === 0) { return; }
+    let details = courses.map((item: TimetableItem) => {
+      let mode = item.week_mode === 2 ? '单周' : item.week_mode === 3 ? '双周' : '每周';
+      return `${item.course_name}\n教师：${item.teacher_name || '未提供'}\n教学班：${item.class_name || '未提供'}\n教室：${item.room_name || '未提供'}\n日期：${this.courseDate(day)}\n节次：第${item.start_period}—${item.end_period}节\n时间：${this.timeText(item.start_time)}—${this.timeText(item.end_time)}\n上课周：第${item.start_week}—${item.end_week}周（${mode}）`;
+    });
+    promptAction.showDialog({ title: '课程详情', message: details.join('\n\n'),
+      buttons: [{ text: '知道了', color: AppTheme.COLOR_PRIMARY }] });
   }
 
   colorFor(courseId: string): string {
@@ -230,28 +237,30 @@ struct TimetablePage {
     if (this.findCourse(period, day) !== undefined) {
       Column({ space: 2 }) {
         Text(this.courseName(period, day))
-          .fontSize(12)
+          .fontSize(14)
           .fontWeight(FontWeight.Medium)
           .fontColor(AppTheme.COLOR_TEXT_PRIMARY)
           .maxLines(2)
         Text(this.courseRoom(period, day))
-          .fontSize(10)
+          .fontSize(12)
           .fontColor(AppTheme.COLOR_TEXT_SECONDARY)
           .maxLines(1)
         Text(this.courseTime(period, day))
-          .fontSize(10)
+          .fontSize(11)
           .fontColor(AppTheme.COLOR_TEXT_SECONDARY)
       }
       .layoutWeight(1)
-      .height(56)
-      .padding(4)
+      .height(104)
+      .padding(6)
       .borderRadius(6)
       .backgroundColor(this.courseColor(period, day))
       .border({ width: 0.5, color: AppTheme.COLOR_BORDER })
+      .onClick(() => this.showCourse(period, day))
+      .accessibilityText(`${this.courseName(period, day)}，点击查看课程详情`)
     } else {
       Column()
         .layoutWeight(1)
-        .height(56)
+        .height(104)
         .backgroundColor(AppTheme.COLOR_CARD)
         .border({ width: 0.5, color: AppTheme.COLOR_BORDER })
     }
@@ -271,6 +280,7 @@ struct TimetablePage {
                 .selected(this.selectedSemesterIndex)
                 .value(this.semesterOptions[this.selectedSemesterIndex].value)
                 .layoutWeight(1)
+                .enabled(!this.loading)
                 .onSelect((index: number) => {
                   this.onSemesterSelect(index);
                 })
@@ -278,25 +288,24 @@ struct TimetablePage {
             .width('100%')
 
             Row({ space: 8 }) {
-              Text('周次')
-                .width(46)
-                .fontSize(AppTheme.FONT_BODY)
-                .fontColor(AppTheme.COLOR_TEXT_SECONDARY)
-              Select(this.weekOptions)
-                .selected(this.selectedWeek - 1)
-                .value(this.weekOptions[this.selectedWeek - 1].value)
+              Button('‹').width(48).height(44).fontSize(30)
+                .enabled(!this.loading && this.selectedWeek > 1)
+                .accessibilityText('上一周').onClick(() => this.changeWeek(-1))
+              Text(`第 ${this.selectedWeek} 周 / 共 ${this.weekCount} 周`)
                 .layoutWeight(1)
-                .onSelect((index: number) => {
-                  this.onWeekSelect(index);
-                })
+                .textAlign(TextAlign.Center).fontSize(18).fontWeight(FontWeight.Medium)
+              Button('›').width(48).height(44).fontSize(30)
+                .enabled(!this.loading && this.selectedWeek < this.weekCount)
+                .accessibilityText('下一周').onClick(() => this.changeWeek(1))
             }
             .width('100%')
 
-            Button('返回当日课表')
+            Button('返回本周课表')
               .width('100%')
               .height(38)
               .fontSize(AppTheme.FONT_BODY)
               .backgroundColor(AppTheme.COLOR_PRIMARY)
+              .enabled(!this.loading)
               .onClick(() => {
                 this.backToToday();
               })
@@ -331,11 +340,15 @@ struct TimetablePage {
           Text('加载中...')
             .fontSize(AppTheme.FONT_BODY)
             .fontColor(AppTheme.COLOR_TEXT_SECONDARY)
-        } else if (this.items.length === 0) {
-          Text('本周暂无课程')
+        } else if (this.semesters.length === 0) {
+          Text('暂无学期，请联系管理员配置')
             .fontSize(AppTheme.FONT_BODY)
             .fontColor(AppTheme.COLOR_TEXT_TERTIARY)
         } else {
+          if (this.items.length === 0) { Text('本周暂无课程').fontSize(14) }
+          Text('左右滑动查看整周，点击课程查看详情').fontSize(12).fontColor(AppTheme.COLOR_TEXT_SECONDARY)
+          // 功能：横向滚动保留放大的课程列，避免七列挤在手机窄屏上。
+          Scroll() {
           Column({ space: 0 }) {
             Row() {
               Text('节次')
@@ -345,7 +358,7 @@ struct TimetablePage {
                 .fontColor(AppTheme.COLOR_TEXT_SECONDARY)
               ForEach(this.dayList(), (day: number) => {
                 Column({ space: 2 }) {
-                  Text(`周${day}`)
+                  Text(`周${['一', '二', '三', '四', '五', '六', '日'][day - 1]}`)
                     .fontSize(AppTheme.FONT_CAPTION)
                     .fontColor(AppTheme.COLOR_TEXT_SECONDARY)
                   Text(this.courseDate(day))
@@ -372,16 +385,17 @@ struct TimetablePage {
                 }, (day: number) => `${day}`)
               }
               .width('100%')
-              .height(56)
+              .height(104)
             }, (period: number) => `${period}`)
           }
           .padding(AppTheme.SPACE_ITEM)
-          .width('100%')
+          .width(800)
           .borderRadius(AppTheme.RADIUS_CARD)
           .backgroundColor(AppTheme.COLOR_CARD)
+          }.scrollable(ScrollDirection.Horizontal).width('100%').scrollBar(BarState.Auto)
         }
       }
-      .padding(AppTheme.SPACE_PAGE)
+      .padding(12)
       .width('100%')
       .justifyContent(FlexAlign.Start)
       .alignItems(HorizontalAlign.Start)

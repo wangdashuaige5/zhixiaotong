@@ -3,6 +3,7 @@ import { ApiException } from '../common/Http';
 import { formatDateTime, leaveStatusText } from '../common/Utils';
 import { CampusApi } from '../services/Api';
 import { LeaveItem } from '../model/Models';
+import { LeaveTimeDialog } from '../components/LeaveTimeDialog';
 
 @Entry
 @Component
@@ -18,6 +19,40 @@ struct LeavePage {
   @State endDate: Date = new Date(Date.now() + 86400000);
   @State endHour: number = 18;
   @State endMinute: number = 0;
+
+  @State submitting: boolean = false;
+  private timeController?: CustomDialogController;
+
+  // 功能：开始/结束两行菜单分别打开日期时间表单。
+  openTimeForm(isStart: boolean): void {
+    let date = isStart ? this.startDate : this.endDate;
+    let selected = new Date(date.getFullYear(), date.getMonth(), date.getDate(),
+      isStart ? this.startHour : this.endHour, isStart ? this.startMinute : this.endMinute);
+    this.timeController = new CustomDialogController({
+      builder: LeaveTimeDialog({ title: isStart ? '选择开始时间' : '选择结束时间',
+        initialValue: selected, onConfirm: (value: Date) => {
+          if (isStart) {
+            this.startDate = value;
+            this.startHour = value.getHours();
+            this.startMinute = value.getMinutes();
+          } else {
+            this.endDate = value;
+            this.endHour = value.getHours();
+            this.endMinute = value.getMinutes();
+          }
+        } }),
+      autoCancel: false
+    });
+    this.timeController.open();
+  }
+
+  displayTime(isStart: boolean): string {
+    return this.buildIso(isStart ? this.startDate : this.endDate,
+      isStart ? this.startHour : this.endHour, isStart ? this.startMinute : this.endMinute)
+      .replace('T', ' ').substring(0, 16);
+  }
+
+  aboutToDisappear(): void { this.timeController?.close(); }
 
   async loadData(): Promise<void> {
     this.loading = true;
@@ -46,10 +81,21 @@ struct LeavePage {
   }
 
   async submit(): Promise<void> {
+    if (this.submitting) { return; }
+    if (this.leaveType.trim().length === 0) {
+      promptAction.showToast({ message: '请填写请假类型' });
+      return;
+    }
+    if (new Date(this.buildIso(this.endDate, this.endHour, this.endMinute)).getTime() <=
+      new Date(this.buildIso(this.startDate, this.startHour, this.startMinute)).getTime()) {
+      promptAction.showToast({ message: '结束时间必须晚于开始时间' });
+      return;
+    }
     if (this.reason.trim().length === 0) {
       promptAction.showToast({ message: '请填写请假原因' });
       return;
     }
+    this.submitting = true;
     try {
       let body: Record<string, Object> = {
         'leave_type': this.leaveType,
@@ -65,6 +111,8 @@ struct LeavePage {
       await this.loadData();
     } catch (e) {
       this.showError(e, '请假提交失败');
+    } finally {
+      this.submitting = false;
     }
   }
 
@@ -116,73 +164,29 @@ struct LeavePage {
           }
           .width('100%')
 
-          Text('开始日期')
-            .fontSize(13)
-            .fontColor('#1F1F1F')
-            .width('100%')
-          DatePicker({
-            start: new Date('2026-09-01'),
-            end: new Date('2027-01-11'),
-            selected: this.startDate
-          })
-            .onChange((value) => {
-              let y = value.year === undefined ? this.startDate.getFullYear() : value.year;
-              let m = value.month === undefined ? this.startDate.getMonth() : value.month;
-              let d = value.day === undefined ? this.startDate.getDate() : value.day;
-              this.startDate = new Date(y, m, d);
-            })
-
-          Text('开始时间')
-            .fontSize(13)
-            .fontColor('#1F1F1F')
-            .width('100%')
-          TimePicker({ selected: this.startDate })
-            .onChange((value) => {
-              this.startHour = value.hour === undefined ? this.startHour : value.hour;
-              this.startMinute = value.minute === undefined ? this.startMinute : value.minute;
-            })
-
-          Text('结束日期')
-            .fontSize(13)
-            .fontColor('#1F1F1F')
-            .width('100%')
-          DatePicker({
-            start: new Date('2026-09-01'),
-            end: new Date('2027-01-11'),
-            selected: this.endDate
-          })
-            .onChange((value) => {
-              let y = value.year === undefined ? this.endDate.getFullYear() : value.year;
-              let m = value.month === undefined ? this.endDate.getMonth() : value.month;
-              let d = value.day === undefined ? this.endDate.getDate() : value.day;
-              this.endDate = new Date(y, m, d);
-            })
-
-          Text('结束时间')
-            .fontSize(13)
-            .fontColor('#1F1F1F')
-            .width('100%')
-          TimePicker({ selected: this.endDate })
-            .onChange((value) => {
-              this.endHour = value.hour === undefined ? this.endHour : value.hour;
-              this.endMinute = value.minute === undefined ? this.endMinute : value.minute;
-            })
-
-          Text(`开始：${this.buildIso(this.startDate, this.startHour, this.startMinute)}`)
-            .fontSize(12)
-            .fontColor('#999999')
-            .width('100%')
-          Text(`结束：${this.buildIso(this.endDate, this.endHour, this.endMinute)}`)
-            .fontSize(12)
-            .fontColor('#999999')
-            .width('100%')
+          // 功能：收起常驻日期滚轮，展示两行可点击菜单。
+          Row({ space: 8 }) {
+            Text('开始时间').width(76).fontSize(15)
+            Text(this.displayTime(true)).layoutWeight(1).fontSize(14).textAlign(TextAlign.End)
+            Text('›').fontSize(26).fontColor('#666666')
+          }.width('100%').height(58).padding({ left: 10, right: 10 })
+            .backgroundColor('#F5F7FB').borderRadius(8)
+            .onClick(() => this.openTimeForm(true)).accessibilityText('选择请假开始时间')
+          Row({ space: 8 }) {
+            Text('结束时间').width(76).fontSize(15)
+            Text(this.displayTime(false)).layoutWeight(1).fontSize(14).textAlign(TextAlign.End)
+            Text('›').fontSize(26).fontColor('#666666')
+          }.width('100%').height(58).padding({ left: 10, right: 10 })
+            .backgroundColor('#F5F7FB').borderRadius(8)
+            .onClick(() => this.openTimeForm(false)).accessibilityText('选择请假结束时间')
 
           TextInput({ placeholder: '请假原因', text: this.reason })
             .height(72)
             .onChange((value: string) => {
               this.reason = value;
             })
-          Button('提交请假申请')
+          Button(this.submitting ? '提交中…' : '提交请假申请')
+            .enabled(!this.submitting)
             .width('100%')
             .height(42)
             .onClick(() => {

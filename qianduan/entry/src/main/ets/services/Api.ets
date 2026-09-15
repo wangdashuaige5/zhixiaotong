@@ -43,11 +43,19 @@ export class CampusApi {
     let refreshToken = data['refresh_token'] as string;
     HttpClient.setTokens(accessToken, refreshToken);
     AppStorage.setOrCreate('user_name', userName);
+    // 签到设备绑定必须使用与当前登录会话相同的设备标识，不保存密码。
+    AppStorage.setOrCreate('login_device_code', deviceCode);
+    AppStorage.setOrCreate('attendance_device_id', '');
   }
 
   static async logout(): Promise<void> {
-    await HttpClient.post('/api/auth/logout', undefined);
-    HttpClient.clearTokens();
+    try {
+      await HttpClient.post('/api/auth/logout', undefined);
+    } finally {
+      HttpClient.clearTokens();
+      AppStorage.setOrCreate('login_device_code', '');
+      AppStorage.setOrCreate('attendance_device_id', '');
+    }
   }
 
   static async me(): Promise<UserInfo> {

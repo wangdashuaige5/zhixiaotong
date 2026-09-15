@@ -1,5 +1,5 @@
 export class AppConstants {
-  static readonly BASE_URL: string = 'http://172.16.30.110:8080';
+  static readonly BASE_URL: string = 'http://127.0.0.1:8080';
   static readonly ACCESS_TOKEN_KEY: string = 'access_token';
   static readonly REFRESH_TOKEN_KEY: string = 'refresh_token';
   static readonly USER_NAME_KEY: string = 'user_name';
