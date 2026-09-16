@@ -359,19 +359,67 @@ public class GradeService {
     access.require("grade:review");
     return db
         .list(
-            "SELECT r.*,c.org_id FROM grade_review r JOIN teaching_class tc ON"
-                + " tc.id=r.teaching_class_id JOIN course c ON c.id=tc.course_id WHERE"
-                + " r.review_status=0 ORDER BY r.id")
+            "SELECT r.*,c.org_id,c.course_name,tc.class_name,u.real_name AS submitter_name"
+                + " FROM grade_review r JOIN teaching_class tc ON"
+                + " tc.id=r.teaching_class_id JOIN course c ON c.id=tc.course_id"
+                + " JOIN `user` u ON u.id=r.submitter_id WHERE"
+                + " r.review_status=0 AND r.submitter_id<>? ORDER BY r.id", access.uid())
         .stream()
         .filter(r -> access.canOrg(access.uid(), num(r.get("org_id")), "grade:review"))
+        .map(r -> {
+          // 仅为已通过院系范围校验的审核快照补学生姓名，不改变原快照值或审核版本。
+          var snapshot = Json.list(r.get("grade_snapshot"));
+          for (var item : snapshot) {
+            var student = db.one(
+                "SELECT u.real_name,u.user_no FROM grade g JOIN enrollment e ON"
+                    + " e.id=g.enrollment_id JOIN `user` u ON u.id=e.student_id"
+                    + " WHERE g.id=? AND e.teaching_class_id=?",
+                item.get("id"), r.get("teaching_class_id"));
+            if (student != null) item.putAll(student);
+          }
+          r.put("grade_snapshot", snapshot);
+          return r;
+        })
         .toList();
+  }
+
+  private static final String CHANGE_SELECT =
+      "SELECT ch.*,e.id AS enrollment_id,e.student_id,e.teaching_class_id,tc.class_name,"
+          + "tc.course_id,c.course_name,c.org_id,u.real_name AS student_name,u.user_no,"
+          + "applicant.real_name AS applicant_name FROM grade_change ch JOIN grade g ON"
+          + " g.id=ch.grade_id JOIN enrollment e ON e.id=g.enrollment_id JOIN teaching_class tc"
+          + " ON tc.id=e.teaching_class_id JOIN course c ON c.id=tc.course_id JOIN `user` u ON"
+          + " u.id=e.student_id JOIN `user` applicant ON applicant.id=ch.applicant_id";
+
+  /** 独立的更正待办，不改变原成绩批次审核列表的结构和含义。 */
+  public Object pendingChanges() {
+    access.require("grade:review");
+    return db.list(CHANGE_SELECT + " WHERE ch.review_status=0 AND ch.applicant_id<>? ORDER BY ch.id",
+            access.uid())
+        .stream()
+        .filter(ch -> access.canOrg(access.uid(), num(ch.get("org_id")), "grade:review"))
+        .toList();
+  }
+
+  /** 更正内容只对仍有成绩写权限的申请者本人、以及该院系授权审核人可见。 */
+  public Object changeDetail(long id) {
+    access.current();
+    var ch = db.one(CHANGE_SELECT + " WHERE ch.id=?", id);
+    check(ch != null, 404, "更正申请不存在");
+    check((eq(ch.get("applicant_id"), access.uid()) && access.has("grade:write"))
+            || access.canOrg(access.uid(), num(ch.get("org_id")), "grade:review"),
+        403, "无权查看此成绩更正");
+    return ch;
   }
 
   public Object classGrades(long course, Map<String, Object> q) {
     var tc = access.courseClass(course, q, true);
     access.require("grade:write");
     return db.list(
-        "SELECT e.id AS enrollment_id,u.real_name,u.user_no,g.* FROM enrollment e JOIN `user` u ON"
+        // 显式列出成绩字段，避免空的 g.enrollment_id 与名册 e.id 同名导致首次录入丢失ID。
+        "SELECT e.id AS enrollment_id,u.real_name,u.user_no,g.id,g.review_id,g.usual_score,"
+            + "g.final_score,g.total_score,g.grade_point,g.exam_flag,g.grade_status,g.operator_id,"
+            + "g.publish_time,g.version,g.create_time,g.update_time FROM enrollment e JOIN `user` u ON"
             + " u.id=e.student_id LEFT JOIN grade g ON g.enrollment_id=e.id WHERE"
             + " e.teaching_class_id=? AND e.enroll_status=1 ORDER BY e.id",
         tc.get("id"));

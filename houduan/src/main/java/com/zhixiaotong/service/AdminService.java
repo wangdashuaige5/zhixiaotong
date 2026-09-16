@@ -403,6 +403,11 @@ public class AdminService {
           409,
           "已提交或发布成绩的教学班不能更改评分配置");
       v.put("version", integer(old, "version", 0) + 1);
+      // 与排课保存共用 configLock；全部排课验证成功后才更新，失败不改配置或版本。
+      var proposed = new LinkedHashMap<>(old);
+      proposed.putAll(v);
+      for (var t : db.list("SELECT * FROM timetable WHERE teaching_class_id=? ORDER BY id", id))
+        schedule.validate(t, num(t.get("id")), proposed);
       db.update("teaching_class", id, v);
     }
     audit.logAs(access.uid(), "TEACHING_CLASS_SAVE", "teaching_class", id, map(), true);

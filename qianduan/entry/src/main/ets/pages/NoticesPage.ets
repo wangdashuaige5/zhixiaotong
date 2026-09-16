@@ -3,21 +3,29 @@ import { ApiException, HttpClient } from '../common/Http';
 import { formatDateTime } from '../common/Utils';
 import { CampusApi } from '../services/Api';
 import { NoticeItem } from '../model/Models';
+import { PaginationBar } from '../components/PaginationBar';
 
 @Entry
 @Component
 struct NoticesPage {
   @State items: NoticeItem[] = [];
   @State detail: Record<string, Object> | null = null;
-  @State loading: boolean = true;
+  @State loading: boolean = false;
   @State error: string = '';
+  @State pageNo: number = 1;
+  @State total: number = 0;
+  @State busy: boolean = false;
+  @State acknowledgedIds: string[] = [];
 
-  async loadData(): Promise<void> {
+  async loadData(pageNo: number = this.pageNo): Promise<void> {
+    if (this.loading || this.busy) { return; }
     this.loading = true;
+    this.pageNo = pageNo; this.items = []; this.total = 0; this.detail = null;
     this.error = '';
     try {
-      let page = await CampusApi.notices();
+      let page = await CampusApi.notices(pageNo);
       this.items = page.items;
+      this.total = Number(page.total);
     } catch (e) {
       let message = '通知加载失败';
       if (e instanceof ApiException) {
@@ -31,21 +39,26 @@ struct NoticesPage {
   }
 
   async openDetail(id: string): Promise<void> {
+    if (this.busy || this.loading) { return; }
+    this.busy = true; this.detail = null;
     try {
       let data = await CampusApi.noticeDetail(id);
       this.detail = data as Record<string, Object>;
     } catch (e) {
       this.showError(e, '通知详情加载失败');
-    }
+    } finally { this.busy = false; }
   }
 
   async ack(id: string): Promise<void> {
+    if (this.busy || this.loading || this.acknowledgedIds.includes(id)) { return; }
+    this.busy = true;
     try {
       await HttpClient.post(`/api/notices/${id}/ack`, undefined);
+      this.acknowledgedIds = this.acknowledgedIds.concat([id]);
       promptAction.showToast({ message: '已确认已阅' });
     } catch (e) {
       this.showError(e, '确认失败');
-    }
+    } finally { this.busy = false; }
   }
 
   showError(e: Object, defaultMessage: string): void {
@@ -143,13 +156,15 @@ struct NoticesPage {
             .layoutWeight(1)
 
             Button('详情')
+              .enabled(!this.busy && !this.loading)
               .height(30)
               .fontSize(12)
               .onClick(() => {
                 this.openDetail(item.id);
               })
             if (item.need_ack === 1) {
-              Button('已阅')
+              Button(this.acknowledgedIds.includes(item.id) ? '已确认' : '确认已阅')
+                .enabled(!this.busy && !this.loading && !this.acknowledgedIds.includes(item.id))
                 .height(30)
                 .fontSize(12)
                 .onClick(() => {
@@ -163,6 +178,8 @@ struct NoticesPage {
           .backgroundColor('#FFFFFF')
         }, (item: NoticeItem) => item.id)
       }
+      PaginationBar({ pageNo: this.pageNo, total: this.total, loading: this.loading || this.busy,
+        onChange: (page: number) => this.loadData(page) })
       }
       .padding(20)
       .width('100%')

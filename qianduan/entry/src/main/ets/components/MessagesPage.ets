@@ -2,18 +2,26 @@ import { promptAction } from '@kit.ArkUI';
 import { ApiException, HttpClient } from '../common/Http';
 import { CampusApi } from '../services/Api';
 import { MessageItem } from '../model/Models';
+import { PaginationBar } from './PaginationBar';
 @Component
 export struct MessagesPage {
   @State items: MessageItem[] = [];
-  @State loading: boolean = true;
+  @State loading: boolean = false;
   @State error: string = '';
+  @State pageNo: number = 1;
+  @State total: number = 0;
+  @State busy: boolean = false;
 
-  async loadData(): Promise<void> {
+  // 首页消息可翻页查看历史消息，加载中不允许重复请求。
+  async loadData(pageNo: number = this.pageNo): Promise<void> {
+    if (this.loading) { return; }
     this.loading = true;
+    this.pageNo = pageNo; this.items = []; this.total = 0;
     this.error = '';
     try {
-      let page = await CampusApi.messages();
+      let page = await CampusApi.messages(pageNo);
       this.items = page.items;
+      this.total = Number(page.total);
     } catch (e) {
       let message = '消息加载失败';
       if (e instanceof ApiException) {
@@ -27,13 +35,15 @@ export struct MessagesPage {
   }
 
   async read(id: string): Promise<void> {
+    if (this.busy || this.loading) { return; }
+    this.busy = true;
     try {
       await HttpClient.post(`/api/messages/${id}/read`, undefined);
       promptAction.showToast({ message: '已标记为已读' });
       await this.loadData();
     } catch (e) {
       this.showError(e, '标记失败');
-    }
+    } finally { this.busy = false; }
   }
 
   isUnread(readTime?: string | null): boolean {
@@ -85,7 +95,6 @@ export struct MessagesPage {
               Text(item.content ?? '')
                 .fontSize(12)
                 .fontColor('#666666')
-                .maxLines(2)
             }
             .alignItems(HorizontalAlign.Start)
             .layoutWeight(1)
@@ -96,6 +105,7 @@ export struct MessagesPage {
                 .fontColor('#D9534F')
             }
             Button('已读')
+              .enabled(!this.busy && !this.loading && this.isUnread(item.read_time))
               .height(30)
               .fontSize(12)
               .onClick(() => {
@@ -108,6 +118,8 @@ export struct MessagesPage {
           .backgroundColor('#FFFFFF')
         }, (item: MessageItem) => item.id)
       }
+      PaginationBar({ pageNo: this.pageNo, total: this.total, loading: this.loading || this.busy,
+        onChange: (page: number) => this.loadData(page) })
       }
       .padding(20)
       .width('100%')

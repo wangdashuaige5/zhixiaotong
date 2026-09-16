@@ -2,6 +2,8 @@ import { HttpClient } from '../common/Http';
 import {
   BookItem,
   BookLoanItem,
+  BookReservationItem,
+  RechargeOrder,
   AssignmentItem,
   CardBalance,
   CardTransaction,
@@ -21,6 +23,28 @@ import {
 
 function dataOf<T>(result: Object): T {
   return result as T;
+}
+
+// 用户接口的权限来自 SQL 行对象，统一映射为页面使用的权限编码数组。
+// 同时兼容已经规范为字符串的服务端响应；缺失或异常条目不授予任何权限。
+function userOf(result: Object): UserInfo {
+  let user = dataOf<UserInfo>(result);
+  let raw = (result as Record<string, Object>)['permissions'];
+  let codes: string[] = [];
+  if (Array.isArray(raw)) {
+    (raw as Object[]).forEach((entry: Object) => {
+      let code: string = '';
+      if (typeof entry === 'string') {
+        code = entry.trim();
+      } else if (entry !== null && typeof entry === 'object') {
+        let value = (entry as Record<string, Object>)['permission_code'];
+        if (typeof value === 'string') { code = value.trim(); }
+      }
+      if (code.length > 0 && !codes.includes(code)) { codes.push(code); }
+    });
+  }
+  user.permissions = codes;
+  return user;
 }
 
 function pageQuery(pageNo: number = 1, pageSize: number = 20): Map<string, string> {
@@ -60,7 +84,7 @@ export class CampusApi {
 
   static async me(): Promise<UserInfo> {
     let result = await HttpClient.get('/api/users/me');
-    return dataOf<UserInfo>(result.data);
+    return userOf(result.data);
   }
 
   static async today(): Promise<TodayCard> {
@@ -101,8 +125,8 @@ export class CampusApi {
     return result.data;
   }
 
-  static async exams(semesterId?: string): Promise<PageData<ExamItem>> {
-    let q = pageQuery();
+  static async exams(semesterId?: string, pageNo: number = 1, pageSize: number = 20): Promise<PageData<ExamItem>> {
+    let q = pageQuery(pageNo, pageSize);
     if (semesterId !== undefined) {
       q.set('semester_id', semesterId);
     }
@@ -135,8 +159,8 @@ export class CampusApi {
     return dataOf<Object[]>(result.data);
   }
 
-  static async enrollmentOptions(batchId: string, keywords?: string): Promise<PageData<CourseOption>> {
-    let q = pageQuery();
+  static async enrollmentOptions(batchId: string, keywords?: string, pageNo: number = 1, pageSize: number = 20): Promise<PageData<CourseOption>> {
+    let q = pageQuery(pageNo, pageSize);
     q.set('batch_id', batchId);
     if (keywords !== undefined && keywords.length > 0) {
       q.set('keywords', keywords);
@@ -145,8 +169,8 @@ export class CampusApi {
     return dataOf<PageData<CourseOption>>(result.data);
   }
 
-  static async myEnrollments(semesterId?: string): Promise<PageData<EnrollmentItem>> {
-    let q = pageQuery();
+  static async myEnrollments(semesterId?: string, pageNo: number = 1, pageSize: number = 20): Promise<PageData<EnrollmentItem>> {
+    let q = pageQuery(pageNo, pageSize);
     if (semesterId !== undefined) {
       q.set('semester_id', semesterId);
     }
@@ -168,8 +192,8 @@ export class CampusApi {
     return result.data;
   }
 
-  static async myGrades(semesterId?: string): Promise<PageData<GradeItem>> {
-    let q = pageQuery();
+  static async myGrades(semesterId?: string, pageNo: number = 1, pageSize: number = 20): Promise<PageData<GradeItem>> {
+    let q = pageQuery(pageNo, pageSize);
     if (semesterId !== undefined) {
       q.set('semester_id', semesterId);
     }
@@ -177,13 +201,24 @@ export class CampusApi {
     return dataOf<PageData<GradeItem>>(result.data);
   }
 
-  static async myLeaves(): Promise<PageData<LeaveItem>> {
-    let result = await HttpClient.get('/api/leaves/me', pageQuery());
+  static async myLeaves(pageNo: number = 1, pageSize: number = 20): Promise<PageData<LeaveItem>> {
+    let result = await HttpClient.get('/api/leaves/me', pageQuery(pageNo, pageSize));
     return dataOf<PageData<LeaveItem>>(result.data);
   }
 
   static async createLeave(body: Record<string, Object>): Promise<LeaveItem> {
     let result = await HttpClient.post('/api/leaves', body);
+    return dataOf<LeaveItem>(result.data);
+  }
+
+  static async leaveDetail(id: string): Promise<LeaveItem> {
+    let result = await HttpClient.get(`/api/leaves/${id}`);
+    return dataOf<LeaveItem>(result.data);
+  }
+
+  // 草稿和退回申请通过同一编辑接口保存或重新提交；审批轮次由后端管理。
+  static async updateLeave(id: string, body: Record<string, Object>): Promise<LeaveItem> {
+    let result = await HttpClient.put(`/api/leaves/${id}`, body);
     return dataOf<LeaveItem>(result.data);
   }
 
@@ -202,23 +237,29 @@ export class CampusApi {
     return dataOf<CardBalance>(result.data);
   }
 
-  static async cardTransactions(): Promise<PageData<CardTransaction>> {
-    let result = await HttpClient.get('/api/cards/transactions', pageQuery());
+  static async cardTransactions(pageNo: number = 1, pageSize: number = 20): Promise<PageData<CardTransaction>> {
+    let result = await HttpClient.get('/api/cards/transactions', pageQuery(pageNo, pageSize));
     return dataOf<PageData<CardTransaction>>(result.data);
   }
 
-  static async recharge(amount: string, requestKey: string): Promise<Object> {
+  // 仅创建待支付订单；支付回调验签和入账始终由服务端负责。
+  static async recharge(amount: string, requestKey: string): Promise<RechargeOrder> {
     let body: Record<string, string> = {
       'amount': amount,
       'pay_channel': 'MOCK_PAY',
       'request_key': requestKey
     };
     let result = await HttpClient.post('/api/cards/recharges', body);
-    return result.data;
+    return dataOf<RechargeOrder>(result.data);
   }
 
-  static async books(keywords: string): Promise<PageData<BookItem>> {
-    let q = pageQuery();
+  static async rechargeOrder(id: string): Promise<RechargeOrder> {
+    let result = await HttpClient.get(`/api/cards/recharges/${id}`);
+    return dataOf<RechargeOrder>(result.data);
+  }
+
+  static async books(keywords: string, pageNo: number = 1, pageSize: number = 20): Promise<PageData<BookItem>> {
+    let q = pageQuery(pageNo, pageSize);
     if (keywords.length > 0) {
       q.set('keywords', keywords);
     }
@@ -226,8 +267,8 @@ export class CampusApi {
     return dataOf<PageData<BookItem>>(result.data);
   }
 
-  static async loans(): Promise<PageData<BookLoanItem>> {
-    let result = await HttpClient.get('/api/library/loans/me', pageQuery());
+  static async loans(pageNo: number = 1, pageSize: number = 20): Promise<PageData<BookLoanItem>> {
+    let result = await HttpClient.get('/api/library/loans/me', pageQuery(pageNo, pageSize));
     return dataOf<PageData<BookLoanItem>>(result.data);
   }
 
@@ -245,8 +286,18 @@ export class CampusApi {
     return result.data;
   }
 
-  static async notices(): Promise<PageData<NoticeItem>> {
-    let result = await HttpClient.get('/api/notices', pageQuery());
+  // 预约列表和取消均限定当前登录用户，沿用后端所有权校验。
+  static async reservations(pageNo: number = 1, pageSize: number = 20): Promise<PageData<BookReservationItem>> {
+    let result = await HttpClient.get('/api/library/reservations/me', pageQuery(pageNo, pageSize));
+    return dataOf<PageData<BookReservationItem>>(result.data);
+  }
+
+  static async cancelReservation(id: string): Promise<void> {
+    await HttpClient.delete(`/api/library/reservations/${id}`);
+  }
+
+  static async notices(pageNo: number = 1, pageSize: number = 20): Promise<PageData<NoticeItem>> {
+    let result = await HttpClient.get('/api/notices', pageQuery(pageNo, pageSize));
     return dataOf<PageData<NoticeItem>>(result.data);
   }
 
@@ -255,8 +306,8 @@ export class CampusApi {
     return result.data;
   }
 
-  static async messages(): Promise<PageData<MessageItem>> {
-    let result = await HttpClient.get('/api/messages', pageQuery());
+  static async messages(pageNo: number = 1, pageSize: number = 20): Promise<PageData<MessageItem>> {
+    let result = await HttpClient.get('/api/messages', pageQuery(pageNo, pageSize));
     return dataOf<PageData<MessageItem>>(result.data);
   }
 
@@ -265,13 +316,13 @@ export class CampusApi {
     return dataOf<Object[]>(result.data);
   }
 
-  static async adminUsers(pageNo: number = 1): Promise<PageData<Object>> {
-    let result = await HttpClient.get('/api/admin/users', pageQuery(pageNo, 20));
+  static async adminUsers(pageNo: number = 1, pageSize: number = 20): Promise<PageData<Object>> {
+    let result = await HttpClient.get('/api/admin/users', pageQuery(pageNo, pageSize));
     return dataOf<PageData<Object>>(result.data);
   }
 
-  static async adminData(resource: string): Promise<PageData<Object>> {
-    let result = await HttpClient.get(`/api/admin/data/${resource}`, pageQuery());
+  static async adminData(resource: string, pageNo: number = 1, pageSize: number = 20): Promise<PageData<Object>> {
+    let result = await HttpClient.get(`/api/admin/data/${resource}`, pageQuery(pageNo, pageSize));
     return dataOf<PageData<Object>>(result.data);
   }
 
@@ -280,14 +331,14 @@ export class CampusApi {
     return result.data;
   }
 
-  static async auditLogs(): Promise<PageData<Object>> {
-    let result = await HttpClient.get('/api/admin/audit-logs', pageQuery());
+  static async auditLogs(pageNo: number = 1, pageSize: number = 20): Promise<PageData<Object>> {
+    let result = await HttpClient.get('/api/admin/audit-logs', pageQuery(pageNo, pageSize));
     return dataOf<PageData<Object>>(result.data);
   }
 
   static async updateProfile(body: Record<string, string>): Promise<UserInfo> {
     let result = await HttpClient.put('/api/users/profile', body);
-    return dataOf<UserInfo>(result.data);
+    return userOf(result.data);
   }
 
   static async changePassword(oldPassword: string, newPassword: string): Promise<void> {

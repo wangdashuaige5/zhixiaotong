@@ -27,6 +27,7 @@ export struct CampusPage {
   @State isCounselor: boolean = false;
   @State isDean: boolean = false;
   @State isAdmin: boolean = false;
+  @State isSecretary: boolean = false;
   @State dormStudentId: string = '';
   @State dormLocation: string = '';
   @State dormCheckResult: string = '1';
@@ -44,6 +45,7 @@ export struct CampusPage {
       this.isCounselor = roleCodes.indexOf('COUNSELOR') >= 0;
       this.isDean = roleCodes.indexOf('DEAN') >= 0;
       this.isAdmin = roleCodes.indexOf('ADMIN') >= 0;
+      this.isSecretary = roleCodes.indexOf('SECRETARY') >= 0;
       this.menuItems = this.buildMenu();
       try {
         this.today = await CampusApi.today();
@@ -73,13 +75,18 @@ export struct CampusPage {
     if (this.isStudent || this.isTeacher) {
       this.addMenu(items, '课表', AppConstants.PAGE_TIMETABLE);
       this.addMenu(items, '作业', AppConstants.PAGE_ASSIGNMENTS);
+      this.addMenu(items, '考试安排', AppConstants.PAGE_EXAMS);
       this.addMenu(items, this.isTeacher ? '课堂考勤' : '课堂签到', AppConstants.PAGE_ATTENDANCE);
     }
     if (this.isStudent) {
       this.addMenu(items, '选课', AppConstants.PAGE_COURSES);
-      this.addMenu(items, '成绩', AppConstants.PAGE_GRADES);
       this.addMenu(items, '请假', AppConstants.PAGE_LEAVE);
       this.addMenu(items, '图书', AppConstants.PAGE_LIBRARY);
+      this.addMenu(items, '校园卡', AppConstants.PAGE_CARD);
+    }
+    // 成绩页根据本人权限展示查分、教师录入或教务审核；不向所有角色开放校园卡。
+    if (this.isStudent || this.isTeacher || this.isSecretary) {
+      this.addMenu(items, this.isStudent && !this.isTeacher && !this.isSecretary ? '成绩' : '成绩管理', AppConstants.PAGE_GRADES);
     }
     if (this.isCounselor || this.isDean) {
       this.addMenu(items, '待审批', AppConstants.PAGE_APPROVALS);
@@ -87,7 +94,6 @@ export struct CampusPage {
     if (this.isAdmin) {
       this.addMenu(items, '管理后台', AppConstants.PAGE_ADMIN);
     }
-    this.addMenu(items, '校园卡', AppConstants.PAGE_CARD);
     return items;
   }
 

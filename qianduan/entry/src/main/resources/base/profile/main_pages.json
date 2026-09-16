@@ -12,6 +12,7 @@
     "pages/NoticesPage",
     "pages/AdminPage",
     "pages/AttendancePage",
+    "pages/AttendanceRecordsPage",
     "pages/AssignmentsPage",
     "pages/ExamsPage",
     "pages/ApprovalsPage"

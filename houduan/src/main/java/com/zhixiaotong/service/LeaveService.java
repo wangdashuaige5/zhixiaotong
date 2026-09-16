@@ -150,7 +150,8 @@ public class LeaveService {
     var rows =
         db
             .list(
-                "SELECT l.*,a.node_order FROM leave_request l JOIN leave_approval a ON"
+                "SELECT l.*,a.node_order,u.real_name,u.user_no FROM leave_request l"
+                    + " JOIN `user` u ON u.id=l.student_id JOIN leave_approval a ON"
                     + " a.leave_id=l.id AND a.apply_round=l.apply_round WHERE a.approver_id=? AND"
                     + " a.decision=0 AND l.leave_status IN (1,2) ORDER BY l.submit_time",
                 access.uid())

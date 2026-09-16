@@ -34,10 +34,10 @@ for (const [key, value] of [['type', 'other'], ['version', 2], ['task_id', '../a
     () => assert.throws(() => qr.parseAttendanceQr(JSON.stringify({ ...payload, [key]: value }))));
 }
 const begin = Date.parse(payload.start_time), end = Date.parse(payload.end_time);
-test('开始前禁止签到', () => assert.notEqual(qr.attendanceTimeError(payload, begin - 1), ''));
+test('安排开始前也不由本机时钟拦截签到', () => assert.equal(qr.attendanceTimeError(payload, begin - 1), ''));
 test('开始时允许签到', () => assert.equal(qr.attendanceTimeError(payload, begin), ''));
 test('截止前允许签到', () => assert.equal(qr.attendanceTimeError(payload, end - 1), ''));
-test('截止时禁止签到', () => assert.notEqual(qr.attendanceTimeError(payload, end), ''));
+test('安排截止后仍由教师开放状态决定签到', () => assert.equal(qr.attendanceTimeError(payload, end), ''));
 
 // 保留并执行页面实际逻辑方法，仅去掉声明式 UI build()/装饰器/import。
 function pageLogic(file, name, marker, globals) {
@@ -88,6 +88,7 @@ test('管理员迁移后保留管理入口', () => {
 
 let options;
 const Leave = pageLogic('pages/LeavePage.ets', 'LeavePage', '  build() {', {
+  Scroller: class { scrollEdge() {} }, Edge: { Top: 0 },
   CustomDialogController: class { constructor(value) { options = value; } open() {} close() {} },
   LeaveTimeDialog: value => value, promptAction: { showToast: () => {} }
 });

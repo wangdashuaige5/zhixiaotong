@@ -1,6 +1,7 @@
 export interface PageData<T> {
   items: T[];
-  total: number;
+  // 后端 Long 序列化为字符串；分页比较时显式 Number(total)。
+  total: number | string;
   page_no: number;
   page_size: number;
 }
@@ -167,6 +168,25 @@ export interface CardTransaction {
   balance_before: string;
   balance_after: string;
   transaction_time: string;
+}
+
+export interface RechargeOrder {
+  id: string;
+  order_no: string;
+  amount: string;
+  order_status: number;
+  expire_time?: string;
+  pay_time?: string;
+  posted_time?: string;
+}
+
+export interface BookReservationItem {
+  id: string;
+  book_id: string;
+  book_name: string;
+  reserve_status: number;
+  reserve_time: string;
+  expire_time?: string;
 }
 
 export interface BookItem {

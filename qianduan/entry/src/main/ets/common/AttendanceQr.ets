@@ -32,13 +32,7 @@ export function parseAttendanceQr(raw: string): AttendanceQrPayload {
   return value;
 }
 
-// 前端提示仅用于交互；最终有效期、选课关系和设备归属仍由原后端校验。
+// 兼容原调用：安排时间与系统时间无关；开放状态、选课和设备由后端判断。
 export function attendanceTimeError(value: AttendanceQrPayload, now: number): string {
-  if (now < new Date(value.start_time).getTime()) {
-    return '签到尚未开始，请在老师设定的时间内签到';
-  }
-  if (now >= new Date(value.end_time).getTime()) {
-    return '签到二维码已过期，请联系老师';
-  }
   return '';
 }

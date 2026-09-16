@@ -2,8 +2,9 @@ import { promptAction } from '@kit.ArkUI';
 import { ApiException } from '../common/Http';
 import { formatDateTime, leaveStatusText } from '../common/Utils';
 import { CampusApi } from '../services/Api';
-import { LeaveItem } from '../model/Models';
+import { LeaveItem, LeaveApprovalItem } from '../model/Models';
 import { LeaveTimeDialog } from '../components/LeaveTimeDialog';
+import { PaginationBar } from '../components/PaginationBar';
 
 @Entry
 @Component
@@ -11,8 +12,14 @@ struct LeavePage {
   @State items: LeaveItem[] = [];
   @State leaveType: string = '事假';
   @State reason: string = '';
-  @State loading: boolean = true;
+  @State loading: boolean = false;
   @State error: string = '';
+  @State pageNo: number = 1;
+  @State total: number = 0;
+  @State actionBusy: boolean = false;
+  @State editingId: string = '';
+  @State editingStatus: number = 0;
+  @State returnOpinion: string = '';
   @State startDate: Date = new Date(Date.now() + 86400000);
   @State startHour: number = 8;
   @State startMinute: number = 0;
@@ -22,9 +29,11 @@ struct LeavePage {
 
   @State submitting: boolean = false;
   private timeController?: CustomDialogController;
+  private scroller: Scroller = new Scroller();
 
   // 功能：开始/结束两行菜单分别打开日期时间表单。
   openTimeForm(isStart: boolean): void {
+    if (this.submitting || this.actionBusy) { return; }
     let date = isStart ? this.startDate : this.endDate;
     let selected = new Date(date.getFullYear(), date.getMonth(), date.getDate(),
       isStart ? this.startHour : this.endHour, isStart ? this.startMinute : this.endMinute);
@@ -54,12 +63,58 @@ struct LeavePage {
 
   aboutToDisappear(): void { this.timeController?.close(); }
 
-  async loadData(): Promise<void> {
+  // 编辑前重新读取服务端状态，避免对已进入审批的旧列表记录继续修改。
+  async editLeave(id: string): Promise<void> {
+    if (this.loading || this.submitting || this.actionBusy) { return; }
+    this.actionBusy = true;
+    try {
+      let item = await CampusApi.leaveDetail(id);
+      if (item.leave_status !== 0 && item.leave_status !== 5) {
+        promptAction.showToast({ message: '申请状态已变化，仅草稿和退回申请可修改' });
+        await this.loadData(); return;
+      }
+      let start = new Date(item.start_time); let end = new Date(item.end_time);
+      if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+        promptAction.showToast({ message: '申请时间格式异常，请联系管理员' }); return;
+      }
+      this.editingId = item.id; this.editingStatus = item.leave_status;
+      this.leaveType = item.leave_type; this.reason = item.leave_reason;
+      this.startDate = start; this.startHour = start.getHours(); this.startMinute = start.getMinutes();
+      this.endDate = end; this.endHour = end.getHours(); this.endMinute = end.getMinutes();
+      this.returnOpinion = (item.approvals ?? []).filter((approval: LeaveApprovalItem) =>
+        approval.apply_round === item.apply_round && approval.decision === 3)
+        .map((approval: LeaveApprovalItem) => approval.opinion ?? '请按审批要求修改后重提').join('；');
+      this.scroller.scrollEdge(Edge.Top);
+    } catch (e) { this.showError(e, '申请详情加载失败'); }
+    finally { this.actionBusy = false; }
+  }
+
+  requestEdit(id: string): void {
+    if (this.reason.trim().length === 0 && this.editingId.length === 0) { this.editLeave(id); return; }
+    this.getUIContext().showAlertDialog({
+      title: '切换编辑申请', message: '表单里未保存的内容将被替换，是否继续？',
+      primaryButton: { value: '取消', action: () => {} },
+      secondaryButton: { value: '继续编辑', action: () => { this.editLeave(id); } }
+    });
+  }
+
+  resetForm(): void {
+    this.editingId = ''; this.editingStatus = 0; this.returnOpinion = '';
+    this.leaveType = '事假'; this.reason = '';
+    this.startDate = new Date(Date.now() + 86400000); this.endDate = new Date(Date.now() + 86400000);
+    this.startHour = 8; this.startMinute = 0; this.endHour = 18; this.endMinute = 0;
+  }
+
+  // 创建申请后回到第一页；撤回/销假保留当前页，并防止旧数据混入。
+  async loadData(pageNo: number = this.pageNo): Promise<void> {
+    if (this.loading) { return; }
     this.loading = true;
+    this.pageNo = pageNo; this.items = []; this.total = 0;
     this.error = '';
     try {
-      let page = await CampusApi.myLeaves();
+      let page = await CampusApi.myLeaves(pageNo);
       this.items = page.items;
+      this.total = Number(page.total);
     } catch (e) {
       let message = '请假记录加载失败';
       if (e instanceof ApiException) {
@@ -80,8 +135,9 @@ struct LeavePage {
     return `${date.getFullYear()}-${this.pad(date.getMonth() + 1)}-${this.pad(date.getDate())}T${this.pad(hour)}:${this.pad(minute)}:00+08:00`;
   }
 
-  async submit(): Promise<void> {
-    if (this.submitting) { return; }
+  async submit(action: string = 'submit'): Promise<void> {
+    if (this.submitting || this.actionBusy || this.loading) { return; }
+    if (action !== 'submit' && action !== 'draft') { return; }
     if (this.leaveType.trim().length === 0) {
       promptAction.showToast({ message: '请填写请假类型' });
       return;
@@ -95,20 +151,30 @@ struct LeavePage {
       promptAction.showToast({ message: '请填写请假原因' });
       return;
     }
+    let duration = new Date(this.buildIso(this.endDate, this.endHour, this.endMinute)).getTime() -
+      new Date(this.buildIso(this.startDate, this.startHour, this.startMinute)).getTime();
+    if (this.leaveType.trim().length > 32 || this.reason.trim().length > 10000 || duration > 365 * 86400000) {
+      promptAction.showToast({ message: '类型最多 32 字、原因最多 10000 字，请假不超过 365 天' }); return;
+    }
     this.submitting = true;
     try {
       let body: Record<string, Object> = {
-        'leave_type': this.leaveType,
+        'leave_type': this.leaveType.trim(),
         'start_time': this.buildIso(this.startDate, this.startHour, this.startMinute),
         'end_time': this.buildIso(this.endDate, this.endHour, this.endMinute),
         'leave_reason': this.reason.trim(),
-        'action': 'submit',
+        'action': action,
         'file_ids': []
       };
-      await CampusApi.createLeave(body);
-      promptAction.showToast({ message: '请假申请已提交' });
-      this.reason = '';
-      await this.loadData();
+      let saved = this.editingId.length > 0 ? await CampusApi.updateLeave(this.editingId, body) : await CampusApi.createLeave(body);
+      if (action === 'draft') {
+        this.editingId = saved.id; this.editingStatus = saved.leave_status;
+        promptAction.showToast({ message: '修改已保存，尚未提交审批' });
+      } else {
+        promptAction.showToast({ message: this.editingId.length > 0 ? '申请已重新提交审批' : '请假申请已提交' });
+        this.resetForm();
+      }
+      await this.loadData(1);
     } catch (e) {
       this.showError(e, '请假提交失败');
     } finally {
@@ -117,23 +183,27 @@ struct LeavePage {
   }
 
   async withdraw(id: string): Promise<void> {
+    if (this.actionBusy || this.submitting || this.loading) { return; }
+    this.actionBusy = true;
     try {
       await CampusApi.withdrawLeave(id);
       promptAction.showToast({ message: '已撤回' });
       await this.loadData();
     } catch (e) {
       this.showError(e, '撤回失败');
-    }
+    } finally { this.actionBusy = false; }
   }
 
   async close(id: string): Promise<void> {
+    if (this.actionBusy || this.submitting || this.loading) { return; }
+    this.actionBusy = true;
     try {
       await CampusApi.closeLeave(id);
       promptAction.showToast({ message: '销假成功' });
       await this.loadData();
     } catch (e) {
       this.showError(e, '销假失败');
-    }
+    } finally { this.actionBusy = false; }
   }
 
   showError(e: Object, defaultMessage: string): void {
@@ -145,7 +215,7 @@ struct LeavePage {
   }
 
   build() {
-    Scroll() {
+    Scroll(this.scroller) {
       Column({ space: 12 }) {
         Text('请假与销假')
           .fontSize(22)
@@ -153,9 +223,15 @@ struct LeavePage {
           .width('100%')
 
         Column({ space: 8 }) {
+          Text(this.editingId.length > 0 ? `编辑申请 #${this.editingId}` : '新建请假申请')
+            .fontSize(16).fontWeight(FontWeight.Bold).width('100%')
+          if (this.editingStatus === 5) {
+            Text(`退回意见：${this.returnOpinion || '请联系审批人确认修改要求'}`).fontSize(13).fontColor('#D9534F').width('100%')
+          }
           Row({ space: 8 }) {
             Text('类型').width(50)
             TextInput({ placeholder: '事假', text: this.leaveType })
+              .enabled(!this.submitting && !this.actionBusy)
               .layoutWeight(1)
               .height(40)
               .onChange((value: string) => {
@@ -181,17 +257,26 @@ struct LeavePage {
             .onClick(() => this.openTimeForm(false)).accessibilityText('选择请假结束时间')
 
           TextInput({ placeholder: '请假原因', text: this.reason })
+            .enabled(!this.submitting && !this.actionBusy)
             .height(72)
             .onChange((value: string) => {
               this.reason = value;
             })
-          Button(this.submitting ? '提交中…' : '提交请假申请')
-            .enabled(!this.submitting)
+          Button(this.submitting ? '处理中…' : (this.editingId.length > 0 ? '保存并提交审批' : '提交请假申请'))
+            .enabled(!this.submitting && !this.actionBusy && !this.loading)
             .width('100%')
             .height(42)
             .onClick(() => {
               this.submit();
             })
+          Row({ space: 10 }) {
+            Button('保存草稿').height(34).fontSize(13).enabled(!this.submitting && !this.actionBusy && !this.loading)
+              .onClick(() => this.submit('draft'))
+            if (this.editingId.length > 0) {
+              Button('取消编辑').height(34).fontSize(13).enabled(!this.submitting && !this.actionBusy)
+                .onClick(() => this.resetForm())
+            }
+          }
         }
         .padding(14)
         .width('100%')
@@ -241,8 +326,14 @@ struct LeavePage {
               Text(item.leave_reason)
                 .fontSize(13)
                 .fontColor('#666666')
+              if (item.leave_status === 0 || item.leave_status === 5) {
+                Button(item.leave_status === 5 ? '修改退回申请' : '编辑草稿')
+                  .height(32).fontSize(12).enabled(!this.actionBusy && !this.submitting && !this.loading)
+                  .onClick(() => this.requestEdit(item.id))
+              }
               if (item.leave_status === 1 || item.leave_status === 2) {
                 Button('撤回')
+                  .enabled(!this.actionBusy && !this.submitting && !this.loading)
                   .height(30)
                   .fontSize(12)
                   .onClick(() => {
@@ -251,6 +342,7 @@ struct LeavePage {
               }
               if (item.leave_status === 3) {
                 Button('销假')
+                  .enabled(!this.actionBusy && !this.submitting && !this.loading)
                   .height(30)
                   .fontSize(12)
                   .onClick(() => {
@@ -264,6 +356,8 @@ struct LeavePage {
             .backgroundColor('#FFFFFF')
           }, (item: LeaveItem) => item.id)
         }
+        PaginationBar({ pageNo: this.pageNo, total: this.total, loading: this.loading || this.submitting || this.actionBusy,
+          onChange: (page: number) => this.loadData(page) })
       }
       .padding(20)
       .width('100%')

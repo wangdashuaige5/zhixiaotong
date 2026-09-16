@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** 仅空库且显式 demo 配置时创建虚构演示数据，不覆盖使用者已有数据。 */
 @Component
+@org.springframework.core.annotation.Order(0)
 @Profile("demo")
 @ConditionalOnProperty(name = "campus.demo-seed", havingValue = "true")
 public class DemoData implements ApplicationRunner {

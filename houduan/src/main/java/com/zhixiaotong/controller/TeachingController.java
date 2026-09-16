@@ -14,6 +14,11 @@ public class TeachingController {
     this.s = s;
   }
 
+  @GetMapping("/teaching-classes/mine")
+  public Result myTeachingClasses(@RequestParam Map<String, Object> q) {
+    return Result.success(s.myTeachingClasses(q));
+  }
+
   @GetMapping("/timetables")
   public Result timetable(@RequestParam Map<String, Object> q) {
     return Result.success(s.timetables(q));

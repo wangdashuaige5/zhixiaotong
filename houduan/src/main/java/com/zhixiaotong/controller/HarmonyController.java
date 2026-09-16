@@ -55,6 +55,11 @@ public class HarmonyController {
     return Result.success(s.sign(id, b));
   }
 
+  @PostMapping("/attendance/tasks/{id}/close")
+  public Result closeAttendance(@PathVariable long id) {
+    return Result.success(s.closeAttendance(id));
+  }
+
   @GetMapping("/attendance/tasks/{id}/records")
   public Result records(@PathVariable long id) {
     return Result.success(s.records(id));

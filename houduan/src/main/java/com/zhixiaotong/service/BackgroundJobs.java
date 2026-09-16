@@ -82,11 +82,7 @@ public class BackgroundJobs {
               now(),
               now(),
               now());
-          db.exec(
-              "UPDATE attendance_task SET task_status=2,update_time=? WHERE task_status=1 AND"
-                  + " end_time<?",
-              now(),
-              now());
+          // 课堂签到由教师显式结束；课程安排时间不再触发自动关闭。
           if (autoClose)
             for (var l :
                 db.list(

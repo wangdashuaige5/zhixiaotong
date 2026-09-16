@@ -222,10 +222,12 @@ public class HarmonyService {
         400,
         "签到时间窗不合法");
     String code = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
-    long id =
-        db.insert(
-            "attendance_task",
-            map(
+    // 同一排课同一天复用任务。排课行锁串行化重复发布，保留已有签到记录。
+    var existing = db.one("SELECT * FROM attendance_task WHERE timetable_id=? AND class_date=?", timetable, date);
+    while (existing != null && Crypto.same(str(existing,"code_hash"),Crypto.hash(code))) {
+      code = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
+    }
+    var values = map(
                 "timetable_id",
                 timetable,
                 "creator_id",
@@ -239,9 +241,31 @@ public class HarmonyService {
                 "code_hash",
                 Crypto.hash(code),
                 "task_status",
-                1));
-    audit.log("ATTENDANCE_CREATE", "attendance_task", id, map());
-    return map("id", id, "sign_code", code, "start_time", start, "end_time", end);
+                1);
+    long id;
+    if (existing == null) {
+      id = db.insert("attendance_task", values);
+    } else {
+      id = num(existing.get("id"));
+      db.lock("attendance_task", id);
+      db.update("attendance_task", id, values);
+    }
+    audit.log(existing == null ? "ATTENDANCE_CREATE" : "ATTENDANCE_REOPEN", "attendance_task", id, map());
+    return map("id", id, "sign_code", code, "start_time", start, "end_time", end,
+        "task_status", 1, "reused", existing != null);
+  }
+
+  /** 教师手动结束；时间为课程安排信息，不触发系统时钟自动关闭。 */
+  @Transactional
+  public Object closeAttendance(long id) {
+    access.require("attendance:write");
+    var initial = db.get("attendance_task", id);
+    var t = db.lock("timetable", num(initial.get("timetable_id")));
+    access.teaching(num(t.get("teaching_class_id")), true);
+    db.lock("attendance_task", id);
+    db.update("attendance_task", id, map("task_status", 2));
+    audit.log("ATTENDANCE_CLOSE", "attendance_task", id, map());
+    return map("id", id, "task_status", 2);
   }
 
   @Transactional
@@ -251,20 +275,16 @@ public class HarmonyService {
     var task = db.lock("attendance_task", id);
     var t = db.get("timetable", num(task.get("timetable_id")));
     access.teaching(num(t.get("teaching_class_id")), false);
+    long device = id(b, "device_id");
+    ownDevice(device, true);
+    check(Crypto.same(Crypto.hash(text(b, "sign_code", 32)), str(task, "code_hash")), 400, "签到码错误或已重新生成，请扫描最新二维码");
     var prior =
         db.one(
             "SELECT * FROM attendance_record WHERE task_id=? AND student_id=?", id, access.uid());
     if (prior != null) return prior;
-    check(
-        integer(task, "task_status", 0) == 1
-            && !now().isBefore(time(task.get("start_time")))
-            && now().isBefore(time(task.get("end_time"))),
-        409,
-        "签到不在有效时间");
-    long device = id(b, "device_id");
-    ownDevice(device, true);
-    check(Crypto.same(Crypto.hash(text(b, "sign_code", 32)), str(task, "code_hash")), 400, "签到码错误");
-    int status = now().isAfter(time(task.get("start_time")).plusMinutes(10)) ? 2 : 1;
+    check(integer(task, "task_status", 0) == 1, 409, "教师已结束本次签到，请联系教师重新开放");
+    // 手动开放模式不按系统时间推算迟到，但保留真实签到时刻用于审计。
+    int status = 1;
     long record =
         db.insert(
             "attendance_record",
@@ -289,30 +309,50 @@ public class HarmonyService {
     var tc = access.teaching(num(t.get("teaching_class_id")), false);
     boolean teacher = eq(tc.get("teacher_id"), access.uid()) && access.has("attendance:write");
     return db.list(
-        "SELECT * FROM attendance_record WHERE task_id=?"
-            + (teacher ? "" : " AND student_id=?")
-            + " ORDER BY student_id",
+        "SELECT r.*,u.real_name,u.user_no FROM attendance_record r JOIN `user` u ON u.id=r.student_id"
+            + " WHERE r.task_id=?"
+            + (teacher ? "" : " AND r.student_id=?")
+            + " ORDER BY r.student_id",
         teacher ? new Object[] {id} : new Object[] {id, access.uid()});
   }
 
   public Object today() {
-    @SuppressWarnings("unchecked")
-    var list = (List<Map<String, Object>>) teaching.timetables(map());
+    // 各卡片独立遵守原业务权限；无课表权限的审批角色仍可读取自己的待办和消息。
+    List<Map<String, Object>> list = List.of();
+    if (access.has("teaching:read")) {
+      var sem = db.one("SELECT * FROM semester WHERE is_current=1");
+      var day = now().toLocalDate();
+      if (sem != null
+          && !day.isBefore(date(sem.get("start_date")))
+          && !day.isAfter(date(sem.get("end_date")))
+          && schedules.week(sem, day) <= integer(sem, "week_count", 0)) {
+        @SuppressWarnings("unchecked")
+        var rows = (List<Map<String, Object>>) teaching.timetables(map());
+        list = rows;
+      }
+    }
+    long pendingLeaves = 0;
+    if (access.has("leave:counselor") || access.has("leave:dean")) {
+      pendingLeaves = db.list(
+              "SELECT l.student_id,l.leave_status FROM leave_approval a JOIN leave_request l"
+                  + " ON a.leave_id=l.id WHERE a.approver_id=? AND a.decision=0 AND"
+                  + " a.apply_round=l.apply_round AND l.leave_status IN (1,2)", access.uid())
+          .stream()
+          .filter(l -> access.canStudent(access.uid(), num(l.get("student_id")),
+              integer(l, "leave_status", 0) == 1 ? "leave:counselor" : "leave:dean"))
+          .count();
+    }
     return map(
         "timetables",
         list.stream()
             .filter(t -> integer(t, "week_day", 0) == now().getDayOfWeek().getValue())
             .toList(),
         "pending_leaves",
-        db.count(
-            "SELECT COUNT(*) FROM leave_approval a JOIN leave_request l ON a.leave_id=l.id WHERE"
-                + " a.approver_id=? AND a.decision=0 AND a.apply_round=l.apply_round AND"
-                + " l.leave_status IN (1,2)",
-            access.uid()),
+        pendingLeaves,
         "unread_messages",
-        db.count(
+        access.has("notice:read") ? db.count(
             "SELECT COUNT(*) FROM message_receipt WHERE receiver_id=? AND read_time IS NULL",
-            access.uid()),
+            access.uid()) : 0,
         "update_time",
         now());
   }

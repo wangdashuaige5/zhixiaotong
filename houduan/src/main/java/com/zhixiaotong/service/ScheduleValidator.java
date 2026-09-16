@@ -54,6 +54,12 @@ public class ScheduleValidator {
 
   public void validate(Map<String, Object> row, Long ignoreId) {
     var tc = db.get("teaching_class", id(row, "teaching_class_id"));
+    validate(row, ignoreId, tc);
+  }
+
+  /** 使用待保存的教学班配置复核排课，不先写库，避免换教师或扩容绕过排课约束。 */
+  public void validate(Map<String, Object> row, Long ignoreId, Map<String, Object> tc) {
+    check(eq(row.get("teaching_class_id"), tc.get("id")), 400, "教学班与排课不一致");
     var sem = db.get("semester", num(tc.get("semester_id")));
     var room = db.get("classroom", id(row, "classroom_id"));
     check(integer(sem, "is_locked", 0) == 0, 409, "学期已锁定");
@@ -73,10 +79,11 @@ public class ScheduleValidator {
     for (var other :
         db.list(
             "SELECT t.* FROM timetable t JOIN teaching_class tc ON t.teaching_class_id=tc.id WHERE"
-                + " tc.semester_id=? AND (tc.teacher_id=? OR t.classroom_id=?)",
+                + " tc.semester_id=? AND (tc.teacher_id=? OR t.classroom_id=? OR tc.id=?)",
             tc.get("semester_id"),
             tc.get("teacher_id"),
-            row.get("classroom_id")))
+            row.get("classroom_id"),
+            tc.get("id")))
       if (ignoreId == null || !eq(other.get("id"), ignoreId))
         check(!overlap(row, other), 409, "教师或教室排课冲突");
   }

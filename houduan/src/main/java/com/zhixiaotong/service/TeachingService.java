@@ -26,6 +26,23 @@ public class TeachingService {
     this.schedule = schedule;
   }
 
+  /** 本人教学班选择源：不受当前周是否排课影响，不向管理员额外开放其他人的课程。 */
+  public Object myTeachingClasses(Map<String, Object> q) {
+    access.require("teaching:read");
+    var sem =
+        q.containsKey("semester_id")
+            ? db.get("semester", id(q, "semester_id"))
+            : db.one("SELECT * FROM semester WHERE is_current=1");
+    check(sem != null, 409, "尚未配置当前学期");
+    return db.list(
+        "SELECT tc.id,tc.class_name,tc.course_id,c.course_name,tc.teacher_id,u.real_name AS"
+            + " teacher_name,tc.semester_id,tc.usual_weight,tc.final_weight FROM teaching_class tc"
+            + " JOIN course c ON c.id=tc.course_id JOIN `user` u ON u.id=tc.teacher_id WHERE"
+            + " tc.semester_id=? AND (tc.teacher_id=? OR EXISTS(SELECT 1 FROM enrollment e WHERE"
+            + " e.teaching_class_id=tc.id AND e.student_id=? AND e.enroll_status=1)) ORDER BY tc.id",
+        sem.get("id"), access.uid(), access.uid());
+  }
+
   public Object timetables(Map<String, Object> q) {
     access.require("teaching:read");
     var sem =
@@ -317,9 +334,10 @@ public class TeachingService {
     if (teacher) access.teaching(num(tc.get("id")), true);
     var list =
         db.list(
-            "SELECT * FROM submission WHERE assignment_id=?"
-                + (teacher ? "" : " AND student_id=?")
-                + " ORDER BY student_id,submit_round DESC",
+            "SELECT s.*,u.real_name,u.user_no FROM submission s JOIN `user` u ON u.id=s.student_id"
+                + " WHERE s.assignment_id=?"
+                + (teacher ? "" : " AND s.student_id=?")
+                + " ORDER BY s.student_id,s.submit_round DESC",
             teacher ? new Object[] {assignment} : new Object[] {assignment, access.uid()});
     if (!teacher)
       for (var row : list)

@@ -49,6 +49,16 @@ public class GradeController {
     return Result.success(s.change(id, b));
   }
 
+  @GetMapping("/grade-changes/pending")
+  public Result pendingChanges() {
+    return Result.success(s.pendingChanges());
+  }
+
+  @GetMapping("/grade-changes/{id}")
+  public Result changeDetail(@PathVariable long id) {
+    return Result.success(s.changeDetail(id));
+  }
+
   @PostMapping("/grade-changes/{id}/decision")
   public Result decide(@PathVariable long id, @RequestBody Map<String, Object> b) {
     return Result.success(s.decideChange(id, b));

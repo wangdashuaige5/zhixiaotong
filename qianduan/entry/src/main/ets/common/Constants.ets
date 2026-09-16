@@ -18,6 +18,7 @@ export class AppConstants {
   static readonly PAGE_PROFILE: string = 'pages/ProfilePage';
   static readonly PAGE_ADMIN: string = 'pages/AdminPage';
   static readonly PAGE_ATTENDANCE: string = 'pages/AttendancePage';
+  static readonly PAGE_ATTENDANCE_RECORDS: string = 'pages/AttendanceRecordsPage';
   static readonly PAGE_ASSIGNMENTS: string = 'pages/AssignmentsPage';
   static readonly PAGE_EXAMS: string = 'pages/ExamsPage';
   static readonly PAGE_APPROVALS: string = 'pages/ApprovalsPage';

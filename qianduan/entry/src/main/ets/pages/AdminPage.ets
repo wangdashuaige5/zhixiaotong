@@ -2,6 +2,7 @@ import { promptAction } from '@kit.ArkUI';
 import { ApiException } from '../common/Http';
 import { AppTheme } from '../common/Theme';
 import { CampusApi } from '../services/Api';
+import { PaginationBar } from '../components/PaginationBar';
 
 class AdminMenu {
   label: string;
@@ -35,6 +36,10 @@ struct AdminPage {
     new AdminMenu('审计日志', 'audit')
   ];
   @State activeTitle: string = '';
+  @State activeResource: string = '';
+  @State pageNo: number = 1;
+  @State total: number = 0;
+  @State saving: boolean = false;
   @State rows: Object[] = [];
   @State tableColumns: string[] = [];
   @State tableKeys: string[] = [];
@@ -45,7 +50,7 @@ struct AdminPage {
   @State courseType: string = '';
   @State courseCredit: string = '';
   @State courseHours: string = '';
-  @State courseOrgId: string = '2';
+  @State courseOrgId: string = '';
   @State bookCode: string = '';
   @State bookName: string = '';
   @State bookAuthor: string = '';
@@ -62,8 +67,11 @@ struct AdminPage {
   @State counselorStart: string = '';
   @State counselorEnd: string = '';
 
-  async loadResource(menu: AdminMenu): Promise<void> {
+  // 管理数据按资源独立翻页；切换菜单时回到第一页，并锁住并行切换。
+  async loadResource(menu: AdminMenu, pageNo: number = 1): Promise<void> {
+    if (this.loading) { return; }
     this.activeTitle = menu.label;
+    this.activeResource = menu.resource; this.pageNo = pageNo; this.total = 0;
     this.loading = true;
     this.error = '';
     this.rows = [];
@@ -72,21 +80,27 @@ struct AdminPage {
       let items: Object[] = [];
       if (menu.resource === 'orgs') {
         items = await CampusApi.adminOrgs();
+        this.total = items.length;
       } else if (menu.resource === 'users') {
-        let page = await CampusApi.adminUsers();
+        let page = await CampusApi.adminUsers(pageNo);
         items = page.items;
+        this.total = Number(page.total);
       } else if (menu.resource === 'notices') {
-        let page = await CampusApi.notices();
+        let page = await CampusApi.notices(pageNo);
         items = page.items;
+        this.total = Number(page.total);
       } else if (menu.resource === 'messages') {
-        let page = await CampusApi.messages();
+        let page = await CampusApi.messages(pageNo);
         items = page.items;
+        this.total = Number(page.total);
       } else if (menu.resource === 'audit') {
-        let page = await CampusApi.auditLogs();
+        let page = await CampusApi.auditLogs(pageNo);
         items = page.items;
+        this.total = Number(page.total);
       } else {
-        let page = await CampusApi.adminData(menu.resource);
+        let page = await CampusApi.adminData(menu.resource, pageNo);
         items = page.items;
+        this.total = Number(page.total);
       }
       this.rows = items;
     } catch (e) {
@@ -99,6 +113,11 @@ struct AdminPage {
     } finally {
       this.loading = false;
     }
+  }
+
+  loadActivePage(page: number): void {
+    if (this.loading || this.saving || page < 1 || this.activeResource.length === 0) { return; }
+    this.loadResource(new AdminMenu(this.activeTitle, this.activeResource), page);
   }
 
   setTableConfig(resource: string): void {
@@ -169,11 +188,18 @@ struct AdminPage {
   }
 
   async saveCourse(): Promise<void> {
+    if (this.saving || this.loading) { return; }
     if (this.courseCode.length === 0 || this.courseName.length === 0 || this.courseType.length === 0 ||
       this.courseCredit.length === 0 || this.courseHours.length === 0 || this.courseOrgId.length === 0) {
       promptAction.showToast({ message: '请填写课程完整信息' });
       return;
     }
+    if (!/^\d+$/.test(this.courseHours) || Number(this.courseHours) <= 0 ||
+      !/^\d+(\.\d{1,2})?$/.test(this.courseCredit) || Number(this.courseCredit) <= 0 ||
+      !/^[1-9]\d*$/.test(this.courseOrgId)) {
+      promptAction.showToast({ message: '学分应为正数，学时为正整数，组织 ID 请按组织列表填写' }); return;
+    }
+    this.saving = true;
     try {
       let body: Record<string, Object> = {
         'confirmed': true,
@@ -192,17 +218,20 @@ struct AdminPage {
       this.courseType = '';
       this.courseCredit = '';
       this.courseHours = '';
+      await this.loadResource(new AdminMenu('课程', 'courses'));
     } catch (e) {
       this.showError(e, '课程保存失败');
-    }
+    } finally { this.saving = false; }
   }
 
   async saveBook(): Promise<void> {
+    if (this.saving || this.loading) { return; }
     if (this.bookCode.length === 0 || this.bookName.length === 0 || this.bookAuthor.length === 0 ||
       this.bookCategory.length === 0) {
       promptAction.showToast({ message: '请填写图书完整信息' });
       return;
     }
+    this.saving = true;
     try {
       let body: Record<string, Object> = {
         'confirmed': true,
@@ -221,17 +250,23 @@ struct AdminPage {
       this.bookCategory = '';
       this.bookPublisher = '';
       this.bookSummary = '';
+      await this.loadResource(new AdminMenu('图书', 'books'));
     } catch (e) {
       this.showError(e, '图书保存失败');
-    }
+    } finally { this.saving = false; }
   }
 
   async saveClassroom(): Promise<void> {
+    if (this.saving || this.loading) { return; }
     if (this.roomCode.length === 0 || this.roomName.length === 0 || this.campusName.length === 0 ||
       this.buildingName.length === 0 || this.roomCapacity.length === 0) {
       promptAction.showToast({ message: '请填写教室完整信息' });
       return;
     }
+    if (!/^[1-9]\d*$/.test(this.roomCapacity)) {
+      promptAction.showToast({ message: '教室容量必须是正整数' }); return;
+    }
+    this.saving = true;
     try {
       let body: Record<string, Object> = {
         'confirmed': true,
@@ -249,16 +284,25 @@ struct AdminPage {
       this.campusName = '';
       this.buildingName = '';
       this.roomCapacity = '';
+      await this.loadResource(new AdminMenu('教室', 'classrooms'));
     } catch (e) {
       this.showError(e, '教室保存失败');
-    }
+    } finally { this.saving = false; }
   }
 
   async saveCounselor(): Promise<void> {
+    if (this.saving || this.loading) { return; }
     if (this.counselorId.length === 0 || this.counselorClassId.length === 0 || this.counselorStart.length === 0) {
       promptAction.showToast({ message: '请填写辅导员、班级和开始时间' });
       return;
     }
+    let start = new Date(this.counselorStart).getTime();
+    let end = this.counselorEnd.length > 0 ? new Date(this.counselorEnd).getTime() : start + 1;
+    if (!/^[1-9]\d*$/.test(this.counselorId) || !/^[1-9]\d*$/.test(this.counselorClassId) ||
+      !Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      promptAction.showToast({ message: '请检查用户/班级 ID 和任职起止时间' }); return;
+    }
+    this.saving = true;
     try {
       let body: Record<string, Object> = {
         'confirmed': true,
@@ -275,9 +319,10 @@ struct AdminPage {
       this.counselorClassId = '';
       this.counselorStart = '';
       this.counselorEnd = '';
+      await this.loadResource(new AdminMenu('辅导员', 'counselors'));
     } catch (e) {
       this.showError(e, '辅导员保存失败');
-    }
+    } finally { this.saving = false; }
   }
 
   showError(e: Object, defaultMessage: string): void {
@@ -314,6 +359,7 @@ struct AdminPage {
                   .backgroundColor(this.activeTitle === menu.label ? AppTheme.COLOR_PRIMARY : AppTheme.COLOR_CARD)
                   .borderRadius(AppTheme.RADIUS_BUTTON)
                   .border({ width: 1, color: AppTheme.COLOR_BORDER })
+                  .enabled(!this.loading && !this.saving)
                   .onClick(() => {
                     this.loadResource(menu);
                   })
@@ -343,6 +389,7 @@ struct AdminPage {
               Text(this.error)
                 .fontSize(AppTheme.FONT_BODY)
                 .fontColor(AppTheme.COLOR_DANGER)
+              Button('重新加载').enabled(!this.loading && !this.saving).onClick(() => this.loadActivePage(this.pageNo))
             } else if (this.rows.length === 0) {
               Text('暂无数据')
                 .fontSize(AppTheme.FONT_BODY)
@@ -383,6 +430,10 @@ struct AdminPage {
               .borderRadius(AppTheme.RADIUS_ITEM)
               .backgroundColor(AppTheme.COLOR_CARD)
             }
+            if (this.activeResource !== 'orgs') {
+              PaginationBar({ pageNo: this.pageNo, total: this.total, loading: this.loading || this.saving,
+                onChange: (page: number) => this.loadActivePage(page) })
+            } else { Text(`全部组织 · ${this.total} 条`).fontSize(12) }
           }
           .padding(AppTheme.SPACE_SECTION)
           .width('100%')
@@ -402,8 +453,9 @@ struct AdminPage {
             TextInput({ placeholder: '学分', text: this.courseCredit }).height(40).onChange((value: string) => { this.courseCredit = value; })
             TextInput({ placeholder: '总学时', text: this.courseHours }).height(40).onChange((value: string) => { this.courseHours = value; })
             TextInput({ placeholder: '组织ID', text: this.courseOrgId }).height(40).onChange((value: string) => { this.courseOrgId = value; })
-            Button('保存课程').width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveCourse(); })
+            Button(this.saving ? '保存中…' : '保存课程').enabled(!this.saving && !this.loading).width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveCourse(); })
           }
+          .enabled(!this.saving)
           .padding(AppTheme.SPACE_SECTION)
           .width('100%')
           .borderRadius(AppTheme.RADIUS_CARD)
@@ -422,8 +474,9 @@ struct AdminPage {
             TextInput({ placeholder: '分类', text: this.bookCategory }).height(40).onChange((value: string) => { this.bookCategory = value; })
             TextInput({ placeholder: '出版社', text: this.bookPublisher }).height(40).onChange((value: string) => { this.bookPublisher = value; })
             TextInput({ placeholder: '简介', text: this.bookSummary }).height(64).onChange((value: string) => { this.bookSummary = value; })
-            Button('保存图书').width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveBook(); })
+            Button(this.saving ? '保存中…' : '保存图书').enabled(!this.saving && !this.loading).width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveBook(); })
           }
+          .enabled(!this.saving)
           .padding(AppTheme.SPACE_SECTION)
           .width('100%')
           .borderRadius(AppTheme.RADIUS_CARD)
@@ -441,8 +494,9 @@ struct AdminPage {
             TextInput({ placeholder: '校区', text: this.campusName }).height(40).onChange((value: string) => { this.campusName = value; })
             TextInput({ placeholder: '教学楼', text: this.buildingName }).height(40).onChange((value: string) => { this.buildingName = value; })
             TextInput({ placeholder: '容量', text: this.roomCapacity }).height(40).onChange((value: string) => { this.roomCapacity = value; })
-            Button('保存教室').width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveClassroom(); })
+            Button(this.saving ? '保存中…' : '保存教室').enabled(!this.saving && !this.loading).width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveClassroom(); })
           }
+          .enabled(!this.saving)
           .padding(AppTheme.SPACE_SECTION)
           .width('100%')
           .borderRadius(AppTheme.RADIUS_CARD)
@@ -459,8 +513,9 @@ struct AdminPage {
             TextInput({ placeholder: '班级ID', text: this.counselorClassId }).height(40).onChange((value: string) => { this.counselorClassId = value; })
             TextInput({ placeholder: '开始时间 2026-09-01T08:00:00+08:00', text: this.counselorStart }).height(40).onChange((value: string) => { this.counselorStart = value; })
             TextInput({ placeholder: '结束时间 可空', text: this.counselorEnd }).height(40).onChange((value: string) => { this.counselorEnd = value; })
-            Button('保存任职').width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveCounselor(); })
+            Button(this.saving ? '保存中…' : '保存任职').enabled(!this.saving && !this.loading).width('100%').height(40).backgroundColor(AppTheme.COLOR_PRIMARY).onClick(() => { this.saveCounselor(); })
           }
+          .enabled(!this.saving)
           .padding(AppTheme.SPACE_SECTION)
           .width('100%')
           .borderRadius(AppTheme.RADIUS_CARD)
